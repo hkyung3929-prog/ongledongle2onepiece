@@ -254,10 +254,45 @@ select option{background:#fff;}
 .rank-new-stock-form label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-weight:600;}
 .green{color:var(--gain);} .red{color:var(--loss);} .neutral{color:var(--muted);}
 
+/* ── 폴더 탭 ── */
+.folder-tab-bar{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;}
+.folder-tab-bar::-webkit-scrollbar{display:none;}
+.folder-tab{flex-shrink:0;padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.folder-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(34,139,87,.25);}
+.folder-tab .folder-del{font-size:11px;opacity:.7;margin-left:2px;}
+
+/* 폴더 생성 폼 */
+.folder-create-form{background:linear-gradient(135deg,#edf5f0,#d6ede0);border:1.5px solid var(--accent);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.folder-create-form h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;}
+.folder-create-row{display:flex;gap:8px;}
+.folder-emoji-btn{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:18px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.folder-emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+
 .home-btn{background:rgba(34,139,87,.1);border:1.5px solid rgba(34,139,87,.25);border-radius:var(--radius-sm);color:var(--accent);font-size:16px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;}
 .home-btn:active{background:rgba(34,139,87,.2);transform:scale(.95);}
 
-/* ── 표지 ── */
+/* ── 비밀번호 화면 ── */
+.lock-wrap{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d1f12;overflow:hidden;}
+.lock-wrap.hidden{display:none;}
+.lock-bg{position:absolute;inset:0;overflow:hidden;}
+.lock-wave{position:absolute;border-radius:50%;opacity:.15;}
+.lock-wave-1{width:500px;height:500px;top:-100px;left:-150px;background:radial-gradient(circle,#22883a,transparent 70%);animation:wavePulse 7s ease-in-out infinite;}
+.lock-wave-2{width:400px;height:400px;bottom:-80px;right:-100px;background:radial-gradient(circle,#16a34a,transparent 70%);animation:wavePulse 9s ease-in-out infinite reverse;}
+.lock-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:0 40px;width:100%;max-width:340px;}
+.lock-icon{font-size:48px;margin-bottom:16px;animation:iconFloat 4s ease-in-out infinite;}
+.lock-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;}
+.lock-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:36px;}
+.lock-dots{display:flex;gap:14px;margin-bottom:32px;}
+.lock-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .2s;}
+.lock-dot.filled{background:#4ade80;border-color:#4ade80;box-shadow:0 0 10px rgba(74,222,128,.5);}
+.lock-dot.error{background:#ef4444;border-color:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.5);animation:shake .4s ease;}
+.lock-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;}
+.lock-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;color:#fff;font-size:22px;font-weight:700;padding:18px;cursor:pointer;transition:all .15s;text-align:center;}
+.lock-key:active{background:rgba(74,222,128,.25);border-color:#4ade80;transform:scale(.94);}
+.lock-key.del{font-size:18px;}
+.lock-key.empty{background:transparent;border:none;cursor:default;}
+.lock-error-msg{font-size:13px;color:#ef4444;margin-top:16px;height:18px;font-weight:600;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
 .cover-wrap{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#0d1f12;}
 .cover-wrap.hidden{display:none;}
 
@@ -310,6 +345,40 @@ select option{background:#fff;}
 </style>
 </head>
 <body>
+
+<!-- ── 비밀번호 화면 ── -->
+<div class="lock-wrap" id="lockWrap">
+  <div class="lock-bg">
+    <div class="lock-wave lock-wave-1"></div>
+    <div class="lock-wave lock-wave-2"></div>
+  </div>
+  <div class="lock-content">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">ONGLEDONGLE</div>
+    <div class="lock-sub">비밀번호를 입력하세요</div>
+    <div class="lock-dots">
+      <div class="lock-dot" id="ld0"></div>
+      <div class="lock-dot" id="ld1"></div>
+      <div class="lock-dot" id="ld2"></div>
+      <div class="lock-dot" id="ld3"></div>
+    </div>
+    <div class="lock-keypad">
+      <div class="lock-key" onclick="lockInput('1')">1</div>
+      <div class="lock-key" onclick="lockInput('2')">2</div>
+      <div class="lock-key" onclick="lockInput('3')">3</div>
+      <div class="lock-key" onclick="lockInput('4')">4</div>
+      <div class="lock-key" onclick="lockInput('5')">5</div>
+      <div class="lock-key" onclick="lockInput('6')">6</div>
+      <div class="lock-key" onclick="lockInput('7')">7</div>
+      <div class="lock-key" onclick="lockInput('8')">8</div>
+      <div class="lock-key" onclick="lockInput('9')">9</div>
+      <div class="lock-key empty"></div>
+      <div class="lock-key" onclick="lockInput('0')">0</div>
+      <div class="lock-key del" onclick="lockDelete()">⌫</div>
+    </div>
+    <div class="lock-error-msg" id="lockError"></div>
+  </div>
+</div>
 
 <!-- ── 표지 ── -->
 <div class="cover-wrap" id="coverWrap">
@@ -465,6 +534,12 @@ select option{background:#fff;}
           <option value="ETC">기타</option>
         </select>
       </div>
+      <div class="form-group full">
+        <label>📁 폴더 (선택)</label>
+        <select id="ns-folder">
+          <option value="">폴더 없음</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -528,14 +603,26 @@ select option{background:#fff;}
 
 <!-- 랭킹 -->
 <div class="section content" id="sec-ranking">
-  <!-- 수식 설명 배너 -->
+  <!-- 수식 배너 -->
   <div class="ranking-formula-card">
     <div class="rf-title">📐 랭킹 점수 수식</div>
     <div class="rf-formula">(영업이익 ÷ 매출액) × ROE × EPS<br>÷ (PBR × PER × 부채비율)</div>
     <div class="rf-desc">수치를 입력한 종목만 랭킹에 표시돼요.</div>
   </div>
 
-  <!-- + 추가하기 버튼 -->
+  <!-- 폴더 탭 바 -->
+  <div style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="section-title">📁 폴더</div>
+      <button class="btn btn-sm-gain" onclick="window.openFolderCreate&&window.openFolderCreate()" style="font-size:12px;">+ 폴더 생성</button>
+    </div>
+    <div id="folderCreateArea"></div>
+    <div class="folder-tab-bar" id="folderTabBar">
+      <button class="folder-tab active" onclick="window.setFolderTab&&window.setFolderTab('all',this)">전체</button>
+    </div>
+  </div>
+
+  <!-- + 수치 추가 버튼 -->
   <div id="rankAddArea"></div>
 
   <!-- 필터 -->
@@ -577,7 +664,7 @@ const DOC_ID = 'main'; // 단일 문서에 전체 데이터 저장
 
 /* ── 데이터 변수 ── */
 const SK='maemail_stocks_v2', TK='maemail_trades_v2';
-let stocks=[], trades=[];
+let stocks=[], trades=[], folders=[];
 let currentSection='positions', sectionHistory=[];
 let currentFilter='all';
 let addTradeType='buy';
@@ -587,6 +674,10 @@ let _detailSid=null;
 let selectMode=false;
 let selectedIds=new Set();
 let _saving=false;
+let currentFolderTab='all'; // 현재 선택된 폴더 탭
+let folderCreateOpen=false;
+let folderEmojiOpen=false;
+let folderSelectedEmoji='📁';
 
 /* ── Firestore load/save ── */
 async function load(){
@@ -597,32 +688,31 @@ async function load(){
       const d=snap.data();
       stocks=d.stocks||[];
       trades=d.trades||[];
-      // Firestore 데이터를 localStorage 에도 캐시
+      folders=d.folders||[];
       localStorage.setItem(SK,JSON.stringify(stocks));
       localStorage.setItem(TK,JSON.stringify(trades));
+      localStorage.setItem('maemail_folders_v1',JSON.stringify(folders));
       return;
     }
   }catch(e){console.warn('Firestore load 실패, localStorage 사용',e);}
-  // 2) 오프라인이면 localStorage 캐시 사용
   try{stocks=JSON.parse(localStorage.getItem(SK))||[];}catch{stocks=[];}
   try{trades=JSON.parse(localStorage.getItem(TK))||[];}catch{trades=[];}
+  try{folders=JSON.parse(localStorage.getItem('maemail_folders_v1'))||[];}catch{folders=[];}
 }
 
 async function save(){
-  // localStorage 즉시 저장 (오프라인 캐시)
   localStorage.setItem(SK,JSON.stringify(stocks));
   localStorage.setItem(TK,JSON.stringify(trades));
-  // Firestore 비동기 저장
+  localStorage.setItem('maemail_folders_v1',JSON.stringify(folders));
   if(_saving)return;
   _saving=true;
   try{
-    await setDoc(doc(db,'journal',DOC_ID),{stocks,trades,updatedAt:new Date().toISOString()});
+    await setDoc(doc(db,'journal',DOC_ID),{stocks,trades,folders,updatedAt:new Date().toISOString()});
   }catch(e){
     console.warn('Firestore save 실패',e);
-    showToast('⚠️ 오프라인 저장됨 (나중에 자동 동기화)',true);
+    showToast('⚠️ 오프라인 저장됨',true);
   }finally{_saving=false;}
 }
-
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmt(n){
   const a=Math.abs(n);
@@ -789,7 +879,11 @@ async function addStockAndTrade(){
   if(!name){showToast('종목명을 입력하세요.',true);return;}
   if(!date||!price||!qty){showToast('날짜, 가격, 수량을 입력하세요.',true);return;}
   let stock=stocks.find(s=>s.name.toLowerCase()===name.toLowerCase());
-  if(!stock){stock={id:uid(),name,market,memo:'',createdAt:new Date().toISOString()};stocks.push(stock);}
+  if(!stock){
+    const folderId=document.getElementById('ns-folder')?.value||'';
+    stock={id:uid(),name,market,memo:'',folderId,createdAt:new Date().toISOString()};
+    stocks.push(stock);
+  }
   trades.push({id:uid(),stockId:stock.id,type:addTradeType,date,price,qty,fee,emotion,memo});
   await save();updateSummary();
   document.getElementById('ns-name').value='';
@@ -1122,9 +1216,21 @@ async function saveRankAdd(sid){
 }
 function renderRanking(){
   renderRankAddArea();
+  renderFolderTabs();
   const c=document.getElementById('rankingList');
-  if(!stocks.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 수치 추가하기"를 눌러 시작하세요.</div></div>';return;}
-  const scored=stocks.map(s=>({s,score:calcScore(s),missing:missingFields(s)}));
+
+  // 폴더 필터 적용
+  let filteredStocks = currentFolderTab==='all'
+    ? stocks
+    : stocks.filter(s=>s.folderId===currentFolderTab);
+
+  if(!filteredStocks.length){
+    c.innerHTML=currentFolderTab==='all'
+      ? '<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 수치 추가하기"를 눌러 시작하세요.</div></div>'
+      : '<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">이 폴더에 종목이 없어요.<br>기록하기에서 폴더를 선택해 추가하세요.</div></div>';
+    return;
+  }
+  const scored=filteredStocks.map(s=>({s,score:calcScore(s),missing:missingFields(s)}));
   const withScore=scored.filter(x=>x.score!==null).sort((a,b)=>b.score-a.score);
   const noScore=scored.filter(x=>x.score===null);
   const maxScore=withScore.length?Math.max(...withScore.map(x=>Math.abs(x.score))):1;
@@ -1133,14 +1239,16 @@ function renderRanking(){
   const medalEmoji=['🥇','🥈','🥉'],numClass=['gold','silver','bronze'],ML2={KR:'🇰🇷 국내',US:'🇺🇸 미국',CRYPTO:'₿ 암호화폐',ETC:'기타'};
   c.innerHTML=list.map(x=>{
     const{s,score,missing}=x;const m=s.metrics||{};const isOpenForm=metricFormSid===s.id;
-    if(score===null)return`<div class="rank-missing-card"><div class="rank-missing-header"><div><div class="rank-missing-name">${s.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${ML2[s.market]||s.market}</div></div><button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button></div><div class="rank-missing-chips">${missing.map(f=>`<span class="missing-chip">${f} 없음</span>`).join('')}</div>${isOpenForm?metricFormHTML(s):''}</div>`;
+    const folder=folders.find(f=>f.id===s.folderId);
+    const folderBadge=folder?`<span style="font-size:10px;background:rgba(34,139,87,.1);color:var(--accent);border:1px solid rgba(34,139,87,.2);padding:2px 8px;border-radius:10px;font-weight:600;">${folder.emoji} ${folder.name}</span>`:'';
+    if(score===null)return`<div class="rank-missing-card"><div class="rank-missing-header"><div><div class="rank-missing-name">${s.name}</div><div style="display:flex;gap:6px;align-items:center;margin-top:4px;"><span style="font-size:11px;color:var(--muted);">${ML2[s.market]||s.market}</span>${folderBadge}</div></div><button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button></div><div class="rank-missing-chips">${missing.map(f=>`<span class="missing-chip">${f} 없음</span>`).join('')}</div>${isOpenForm?metricFormHTML(s):''}</div>`;
     const rank=withScore.findIndex(x=>x.s.id===s.id)+1;
     const barPct=maxScore?Math.min(Math.abs(score)/maxScore*100,100):0;
     const scoreDisp=Math.abs(score)>=1000?score.toFixed(1):Math.abs(score)>=1?score.toFixed(3):score.toFixed(5);
     const 영업이익률=m.매출액?(((m.영업이익||0)/m.매출액)*100).toFixed(1)+'%':'-';
     return`<div class="rank-card ${rank<=3?'rank-'+rank:''}">
       ${rank<=3?`<div class="rank-badge">${medalEmoji[rank-1]}</div>`:''}
-      <div class="rank-header"><div class="rank-num ${rank<=3?numClass[rank-1]:''}">#${rank}</div><div><div class="rank-name">${s.name}</div><div class="rank-market">${ML2[s.market]||s.market}</div></div></div>
+      <div class="rank-header"><div class="rank-num ${rank<=3?numClass[rank-1]:''}">#${rank}</div><div><div class="rank-name">${s.name}</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px;"><span class="rank-market">${ML2[s.market]||s.market}</span>${folderBadge}</div></div></div>
       <div class="rank-score-row"><div class="rank-score">${scoreDisp}</div><div class="rank-score-label">점수</div></div>
       <div class="rank-score-bar-wrap"><div class="rank-score-bar" style="width:${barPct}%"></div></div>
       <div class="rank-metrics">
@@ -1228,12 +1336,59 @@ window.setRankFilter=setRankFilter;window.openRankAdd=openRankAdd;window.closeRa
 window.selectRankStock=selectRankStock;window.openRankNewStock=openRankNewStock;window.saveRankAdd=saveRankAdd;
 window.openMetricForm=openMetricForm;window.closeMetricForm=closeMetricForm;window.saveMetrics=saveMetrics;
 window.exportCSV=exportCSV;window.exportJSON=exportJSON;window.importJSON=importJSON;window.clearAll=clearAll;
+window.renderFolderTabs=renderFolderTabs;window.renderFolderSelect=renderFolderSelect;
+
+/* ── 비밀번호 ── */
+const LOCK_PW = '0706';
+let lockInput_val = '';
+
+window.lockInput = function(n) {
+  if(lockInput_val.length >= 4) return;
+  lockInput_val += n;
+  updateLockDots();
+  if(lockInput_val.length === 4) {
+    setTimeout(() => checkLockPW(), 120);
+  }
+};
+window.lockDelete = function() {
+  lockInput_val = lockInput_val.slice(0, -1);
+  updateLockDots();
+  document.getElementById('lockError').textContent = '';
+};
+function updateLockDots() {
+  for(let i = 0; i < 4; i++) {
+    const dot = document.getElementById('ld' + i);
+    dot.classList.toggle('filled', i < lockInput_val.length);
+    dot.classList.remove('error');
+  }
+}
+function checkLockPW() {
+  if(lockInput_val === LOCK_PW) {
+    // 정답 — 잠금 해제
+    const lw = document.getElementById('lockWrap');
+    lw.style.transition = 'opacity .4s ease';
+    lw.style.opacity = '0';
+    setTimeout(() => lw.classList.add('hidden'), 400);
+  } else {
+    // 오답 — 흔들기 + 초기화
+    for(let i = 0; i < 4; i++) {
+      const dot = document.getElementById('ld' + i);
+      dot.classList.remove('filled');
+      dot.classList.add('error');
+    }
+    document.getElementById('lockError').textContent = '비밀번호가 틀렸어요';
+    setTimeout(() => {
+      lockInput_val = '';
+      updateLockDots();
+      document.getElementById('lockError').textContent = '';
+    }, 800);
+  }
+}
 
 /* ── Init ── */
-// 로딩 표시
 document.getElementById('positionList').innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">데이터 불러오는 중...</div></div>';
 await load();
-updateSummary();renderPositions();
+updateSummary();renderPositions();renderFolderTabs();renderFolderSelect();
 document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('popstate',()=>{if(sectionHistory.length){const p=sectionHistory.pop();_render(p);}});
 history.pushState({},'');
