@@ -261,6 +261,26 @@ select option{background:#fff;}
 .folder-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(34,139,87,.25);}
 .folder-tab .folder-del{font-size:11px;opacity:.7;margin-left:2px;}
 
+/* 폴더 종목 선택 모드 */
+.folder-add-panel{background:linear-gradient(135deg,#edf5f0,#d6ede0);border:1.5px solid var(--accent);border-radius:var(--radius);padding:15px;margin-top:10px;}
+.folder-add-panel h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;}
+.folder-stock-item{display:flex;align-items:center;gap:12px;padding:11px 13px;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.folder-stock-item:active{border-color:var(--accent);}
+.folder-stock-item.selected{border-color:var(--accent);background:rgba(34,139,87,.06);}
+.folder-stock-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.folder-stock-cb.checked{background:var(--accent);border-color:var(--accent);}
+.folder-stock-cb.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
+.folder-stock-name{font-size:14px;font-weight:700;flex:1;}
+.folder-stock-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+
+/* 폴더 종목 선택 모드 */
+.folder-selectable{cursor:pointer;}
+.folder-selectable:active{border-color:var(--accent);}
+.folder-select-selected{border-color:var(--accent)!important;background:rgba(34,139,87,.06)!important;}
+.rank-stock-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.rank-stock-cb.checked{background:var(--accent);border-color:var(--accent);}
+.rank-stock-cb.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
+
 /* 폴더 생성 폼 */
 .folder-create-form{background:linear-gradient(135deg,#edf5f0,#d6ede0);border:1.5px solid var(--accent);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
 .folder-create-form h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;}
@@ -354,7 +374,8 @@ select option{background:#fff;}
     'selectRankStock','openRankNewStock','saveRankAdd','openMetricForm','closeMetricForm',
     'saveMetrics','exportCSV','exportJSON','importJSON','clearAll',
     'openFolderCreate','closeFolderCreate','toggleEmojiPicker','selectFolderEmoji',
-    'saveFolder','setFolderTab','deleteFolder','renderFolderTabs','renderFolderSelect'
+    'saveFolder','setFolderTab','deleteFolder','renderFolderTabs','renderFolderSelect',
+    'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder'
   ];
   FNAMES.forEach(function(name){
     if(!window[name]){
@@ -645,11 +666,28 @@ select option{background:#fff;}
   <div style="margin-bottom:14px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <div class="section-title">📁 폴더</div>
-      <button class="btn btn-sm-gain" onclick="window.openFolderCreate&&window.openFolderCreate()" style="font-size:12px;">+ 폴더 생성</button>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-sm-gain" onclick="window.openFolderCreate&&window.openFolderCreate()" style="font-size:12px;">+ 폴더 생성</button>
+        <button class="btn btn-outline" id="btnSelectStocks" onclick="window.enterFolderSelectMode&&window.enterFolderSelectMode()" style="font-size:12px;">선택</button>
+      </div>
     </div>
     <div id="folderCreateArea"></div>
     <div class="folder-tab-bar" id="folderTabBar">
       <button class="folder-tab active" onclick="window.setFolderTab&&window.setFolderTab('all',this)">전체</button>
+    </div>
+  </div>
+
+  <!-- 선택 모드 액션 바 (평소엔 숨김) -->
+  <div id="folderSelectBar" style="display:none;">
+    <div style="background:linear-gradient(135deg,#edf5f0,#d6ede0);border:1.5px solid var(--accent);border-radius:var(--radius);padding:14px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;" id="folderSelectCount">0개 선택됨</div>
+      <div style="display:flex;gap:8px;">
+        <select id="folderMoveTarget" style="flex:1;">
+          <option value="">이동할 폴더 선택</option>
+        </select>
+        <button class="btn btn-sm-gain" onclick="window.moveToFolder&&window.moveToFolder()">이동</button>
+        <button class="btn btn-outline" onclick="window.exitFolderSelectMode&&window.exitFolderSelectMode()" style="font-size:12px;">취소</button>
+      </div>
     </div>
   </div>
 
@@ -1272,6 +1310,62 @@ async function deleteFolder(fid){
   });
 }
 
+/* ── 랭킹 종목 선택 모드 ── */
+let folderSelectMode=false;
+let folderSelectedStocks=new Set();
+
+function enterFolderSelectMode(){
+  if(!folders.length){showToast('먼저 폴더를 생성해주세요.',true);return;}
+  folderSelectMode=true;
+  folderSelectedStocks.clear();
+  // 선택 바 표시
+  document.getElementById('folderSelectBar').style.display='block';
+  document.getElementById('btnSelectStocks').textContent='선택중...';
+  document.getElementById('btnSelectStocks').style.opacity='0.5';
+  document.getElementById('btnSelectStocks').onclick=null;
+  // 이동 폴더 드롭다운 업데이트
+  const sel=document.getElementById('folderMoveTarget');
+  sel.innerHTML='<option value="">이동할 폴더 선택</option>'
+    +folders.map(f=>`<option value="${f.id}">${f.emoji} ${f.name}</option>`).join('');
+  renderRanking();
+}
+function exitFolderSelectMode(){
+  folderSelectMode=false;
+  folderSelectedStocks.clear();
+  document.getElementById('folderSelectBar').style.display='none';
+  const btn=document.getElementById('btnSelectStocks');
+  btn.textContent='선택';
+  btn.style.opacity='1';
+  btn.onclick=function(){window.enterFolderSelectMode&&window.enterFolderSelectMode();};
+  renderRanking();
+}
+function toggleFolderStockSelect(sid){
+  if(folderSelectedStocks.has(sid)) folderSelectedStocks.delete(sid);
+  else folderSelectedStocks.add(sid);
+  // 카드 시각 업데이트
+  document.querySelectorAll('.rank-card[data-sid], .rank-missing-card[data-sid]').forEach(el=>{
+    const id=el.dataset.sid;
+    const cb=el.querySelector('.rank-stock-cb');
+    const isSel=folderSelectedStocks.has(id);
+    if(cb){cb.classList.toggle('checked',isSel);}
+    el.classList.toggle('folder-select-selected',isSel);
+  });
+  document.getElementById('folderSelectCount').textContent=folderSelectedStocks.size+'개 선택됨';
+}
+async function moveToFolder(){
+  const fid=document.getElementById('folderMoveTarget')?.value;
+  if(!fid){showToast('이동할 폴더를 선택해주세요.',true);return;}
+  if(!folderSelectedStocks.size){showToast('종목을 선택해주세요.',true);return;}
+  folderSelectedStocks.forEach(sid=>{
+    const s=stocks.find(s=>s.id===sid);
+    if(s) s.folderId=fid;
+  });
+  await save();
+  const folder=folders.find(f=>f.id===fid);
+  showToast(`✅ ${folderSelectedStocks.size}개 종목을 "${folder?.emoji} ${folder?.name}"로 이동!`);
+  exitFolderSelectMode();
+}
+
 /* ── 랭킹 ── */
 let rankFilter='all',metricFormSid=null,rankAddOpen=false,rankNewStockOpen=false,rankSelectedSid=null;
 function setRankFilter(f,el){rankFilter=f;document.querySelectorAll('#sec-ranking .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderRanking();}
@@ -1285,7 +1379,11 @@ function renderRankAddArea(){
   const selectedStock=rankSelectedSid?stocks.find(s=>s.id===rankSelectedSid):null;
   area.innerHTML=`<div class="rank-add-panel"><h4>＋ 종목 선택 또는 새로 추가</h4>
     <div class="stock-dropdown">${optionsHTML}<div class="stock-option stock-option-new" onclick="openRankNewStock()"><div class="stock-option-left"><div class="stock-option-name">＋ 새 종목으로 추가하기</div><div class="stock-option-sub">목록에 없는 종목 직접 입력</div></div><span style="color:var(--accent);font-size:18px;">›</span></div></div>
-    ${rankNewStockOpen?`<div class="rank-new-stock-form"><label>종목명 / 티커</label><input type="text" id="rns-name" placeholder="예: 카카오 / TSLA" style="margin-bottom:8px;"><label>시장</label><select id="rns-market"><option value="KR">🇰🇷 국내</option><option value="US">🇺🇸 미국</option><option value="CRYPTO">₿ 암호화폐</option><option value="ETC">기타</option></select></div>`:''}
+    ${rankNewStockOpen?`<div class="rank-new-stock-form">
+      <label>종목명 / 티커</label><input type="text" id="rns-name" placeholder="예: 카카오 / TSLA" style="margin-bottom:8px;">
+      <label>시장</label><select id="rns-market" style="margin-bottom:8px;"><option value="KR">🇰🇷 국내</option><option value="US">🇺🇸 미국</option><option value="CRYPTO">₿ 암호화폐</option><option value="ETC">기타</option></select>
+      <label>📁 폴더 (선택)</label><select id="rns-folder"><option value="">폴더 없음</option>${folders.map(f=>`<option value="${f.id}">${f.emoji} ${f.name}</option>`).join('')}</select>
+    </div>`:''}
     ${selectedStock||rankNewStockOpen?rankAddMetricFormHTML(selectedStock):''}
     <button class="btn btn-outline" style="width:100%;margin-top:4px;" onclick="closeRankAdd()">닫기</button>
   </div>`;
@@ -1302,10 +1400,12 @@ async function saveRankAdd(sid){
   if(!ROE||!EPS||!PBR||!PER||!부채비율){showToast('필수 항목을 모두 입력해주세요.',true);return;}
   const metrics={영업이익:g('영업이익'),매출액,ROE,EPS,PBR,PER,부채비율};
   if(sid==='__new__'){
-    const name=document.getElementById('rns-name')?.value.trim();const market=document.getElementById('rns-market')?.value||'KR';
+    const name=document.getElementById('rns-name')?.value.trim();
+    const market=document.getElementById('rns-market')?.value||'KR';
+    const folderId=document.getElementById('rns-folder')?.value||'';
     if(!name){showToast('종목명을 입력하세요.',true);return;}
     if(stocks.find(s=>s.name.toLowerCase()===name.toLowerCase())){showToast('이미 등록된 종목이에요.',true);return;}
-    stocks.push({id:uid(),name,market,memo:'',metrics,createdAt:new Date().toISOString()});
+    stocks.push({id:uid(),name,market,memo:'',folderId,metrics,createdAt:new Date().toISOString()});
   }else{const s=stocks.find(s=>s.id===sid);if(s)s.metrics=metrics;}
   await save();updateSummary();rankAddOpen=false;rankNewStockOpen=false;rankSelectedSid=null;showToast('✅ 저장 완료!');renderRanking();
 }
@@ -1336,14 +1436,31 @@ function renderRanking(){
     const{s,score,missing}=x;const m=s.metrics||{};const isOpenForm=metricFormSid===s.id;
     const folder=folders.find(f=>f.id===s.folderId);
     const folderBadge=folder?`<span style="font-size:10px;background:rgba(34,139,87,.1);color:var(--accent);border:1px solid rgba(34,139,87,.2);padding:2px 8px;border-radius:10px;font-weight:600;">${folder.emoji} ${folder.name}</span>`:'';
-    if(score===null)return`<div class="rank-missing-card"><div class="rank-missing-header"><div><div class="rank-missing-name">${s.name}</div><div style="display:flex;gap:6px;align-items:center;margin-top:4px;"><span style="font-size:11px;color:var(--muted);">${ML2[s.market]||s.market}</span>${folderBadge}</div></div><button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button></div><div class="rank-missing-chips">${missing.map(f=>`<span class="missing-chip">${f} 없음</span>`).join('')}</div>${isOpenForm?metricFormHTML(s):''}</div>`;
+    if(score===null)return`<div class="rank-missing-card ${folderSelectMode?'folder-selectable':''}" data-sid="${s.id}" ${folderSelectMode?`onclick="toggleFolderStockSelect('${s.id}')"`:''}>
+      <div class="rank-missing-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${folderSelectMode?`<div class="rank-stock-cb ${folderSelectedStocks.has(s.id)?'checked':''}"></div>`:''}
+          <div>
+            <div class="rank-missing-name">${s.name}</div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:4px;"><span style="font-size:11px;color:var(--muted);">${ML2[s.market]||s.market}</span>${folderBadge}</div>
+          </div>
+        </div>
+        ${!folderSelectMode?`<button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button>`:''}
+      </div>
+      <div class="rank-missing-chips">${missing.map(f=>`<span class="missing-chip">${f} 없음</span>`).join('')}</div>
+      ${isOpenForm?metricFormHTML(s):''}
+    </div>`;
     const rank=withScore.findIndex(x=>x.s.id===s.id)+1;
     const barPct=maxScore?Math.min(Math.abs(score)/maxScore*100,100):0;
     const scoreDisp=Math.abs(score)>=1000?score.toFixed(1):Math.abs(score)>=1?score.toFixed(3):score.toFixed(5);
     const 영업이익률=m.매출액?(((m.영업이익||0)/m.매출액)*100).toFixed(1)+'%':'-';
-    return`<div class="rank-card ${rank<=3?'rank-'+rank:''}">
-      ${rank<=3?`<div class="rank-badge">${medalEmoji[rank-1]}</div>`:''}
-      <div class="rank-header"><div class="rank-num ${rank<=3?numClass[rank-1]:''}">#${rank}</div><div><div class="rank-name">${s.name}</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px;"><span class="rank-market">${ML2[s.market]||s.market}</span>${folderBadge}</div></div></div>
+    return`<div class="rank-card ${rank<=3?'rank-'+rank:''} ${folderSelectMode?'folder-selectable':''} ${folderSelectMode&&folderSelectedStocks.has(s.id)?'folder-select-selected':''}" data-sid="${s.id}" ${folderSelectMode?`onclick="toggleFolderStockSelect('${s.id}')"`:''}>
+      ${rank<=3&&!folderSelectMode?`<div class="rank-badge">${medalEmoji[rank-1]}</div>`:''}
+      <div class="rank-header">
+        ${folderSelectMode?`<div class="rank-stock-cb ${folderSelectedStocks.has(s.id)?'checked':''}"></div>`:''}
+        <div class="rank-num ${rank<=3?numClass[rank-1]:''}">#${rank}</div>
+        <div><div class="rank-name">${s.name}</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px;"><span class="rank-market">${ML2[s.market]||s.market}</span>${folderBadge}</div></div>
+      </div>
       <div class="rank-score-row"><div class="rank-score">${scoreDisp}</div><div class="rank-score-label">점수</div></div>
       <div class="rank-score-bar-wrap"><div class="rank-score-bar" style="width:${barPct}%"></div></div>
       <div class="rank-metrics">
@@ -1429,7 +1546,8 @@ var _exports = {
   selectRankStock,openRankNewStock,saveRankAdd,openMetricForm,closeMetricForm,
   saveMetrics,exportCSV,exportJSON,importJSON,clearAll,
   openFolderCreate,closeFolderCreate,toggleEmojiPicker,selectFolderEmoji,
-  saveFolder,setFolderTab,deleteFolder,renderFolderTabs,renderFolderSelect
+  saveFolder,setFolderTab,deleteFolder,renderFolderTabs,renderFolderSelect,
+  enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder
 };
 Object.keys(_exports).forEach(function(name){
   window['_real_'+name] = _exports[name];
