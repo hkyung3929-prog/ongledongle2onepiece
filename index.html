@@ -1462,10 +1462,15 @@ function renderRankAddArea(){
   const area=document.getElementById('rankAddArea');if(!area)return;
   if(!rankAddOpen){area.innerHTML=`<button class="rank-add-btn" onclick="openRankAdd()">＋ 수치 추가하기</button>`;return;}
   const ML2={KR:'🇰🇷',US:'🇺🇸',CRYPTO:'₿',ETC:'기타'};
-  const optionsHTML=stocks.map(s=>{const hasMet=calcScore(s)!==null;return`<div class="stock-option" onclick="selectRankStock('${s.id}')"><div class="stock-option-left"><div class="stock-option-name">${s.name}</div><div class="stock-option-sub">${ML2[s.market]||s.market}</div></div><span class="stock-option-badge ${hasMet?'badge-done':'badge-none'}">${hasMet?'입력완료':'미입력'}</span></div>`;}).join('');
+  // 가나다순 정렬
+  const sortedStocks=[...stocks].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  const optionsHTML=sortedStocks.map(s=>{const hasMet=calcScore(s)!==null;return`<div class="stock-option" onclick="selectRankStock('${s.id}')"><div class="stock-option-left"><div class="stock-option-name">${s.name}</div><div class="stock-option-sub">${ML2[s.market]||s.market}</div></div><span class="stock-option-badge ${hasMet?'badge-done':'badge-none'}">${hasMet?'입력완료':'미입력'}</span></div>`;}).join('');
   const selectedStock=rankSelectedSid?stocks.find(s=>s.id===rankSelectedSid):null;
   area.innerHTML=`<div class="rank-add-panel"><h4>＋ 종목 선택 또는 새로 추가</h4>
-    <div class="stock-dropdown">${optionsHTML}<div class="stock-option stock-option-new" onclick="openRankNewStock()"><div class="stock-option-left"><div class="stock-option-name">＋ 새 종목으로 추가하기</div><div class="stock-option-sub">목록에 없는 종목 직접 입력</div></div><span style="color:var(--accent);font-size:18px;">›</span></div></div>
+    <div class="stock-dropdown">
+      <div class="stock-option stock-option-new" onclick="openRankNewStock()"><div class="stock-option-left"><div class="stock-option-name">＋ 새 종목으로 추가하기</div><div class="stock-option-sub">목록에 없는 종목 직접 입력</div></div><span style="color:var(--accent);font-size:18px;">›</span></div>
+      ${optionsHTML}
+    </div>
     ${rankNewStockOpen?`<div class="rank-new-stock-form">
       <label>종목명 / 티커</label><input type="text" id="rns-name" placeholder="예: 카카오 / TSLA" style="margin-bottom:8px;">
       <label>시장</label><select id="rns-market" style="margin-bottom:8px;"><option value="KR">🇰🇷 국내</option><option value="US">🇺🇸 미국</option><option value="CRYPTO">₿ 암호화폐</option><option value="ETC">기타</option></select>
