@@ -1355,6 +1355,18 @@ async function saveFolderEdit(fid){
   renderFolderSelect();
   showToast('✅ 폴더 수정 완료!');
 }
+function openFolderCreate(){
+  folderCreateOpen=true;
+  folderEmojiOpen=false;
+  folderSelectedEmoji='📁';
+  folderEditingId=null;
+  folderEditEmojiOpen=false;
+  renderFolderCreateArea();
+  setTimeout(()=>{
+    const input=document.getElementById('folderNameInput');
+    if(input) input.focus();
+  },100);
+}
 function closeFolderCreate(){folderCreateOpen=false;folderEmojiOpen=false;renderFolderCreateArea();}
 function toggleEmojiPicker(){folderEmojiOpen=!folderEmojiOpen;renderFolderCreateArea();}
 function selectFolderEmoji(e){folderSelectedEmoji=e;folderEmojiOpen=false;renderFolderCreateArea();}
