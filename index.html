@@ -1466,7 +1466,11 @@ function renderRankAddArea(){
   const sortedStocks=[...stocks].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   const optionsHTML=sortedStocks.map(s=>{const hasMet=calcScore(s)!==null;return`<div class="stock-option" onclick="selectRankStock('${s.id}')"><div class="stock-option-left"><div class="stock-option-name">${s.name}</div><div class="stock-option-sub">${ML2[s.market]||s.market}</div></div><span class="stock-option-badge ${hasMet?'badge-done':'badge-none'}">${hasMet?'입력완료':'미입력'}</span></div>`;}).join('');
   const selectedStock=rankSelectedSid?stocks.find(s=>s.id===rankSelectedSid):null;
-  area.innerHTML=`<div class="rank-add-panel"><h4>＋ 종목 선택 또는 새로 추가</h4>
+  area.innerHTML=`<div class="rank-add-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h4 style="margin-bottom:0;">＋ 종목 선택 또는 새로 추가</h4>
+      <button onclick="closeRankAdd()" style="background:transparent;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+    </div>
     <div class="stock-dropdown">
       <div class="stock-option stock-option-new" onclick="openRankNewStock()"><div class="stock-option-left"><div class="stock-option-name">＋ 새 종목으로 추가하기</div><div class="stock-option-sub">목록에 없는 종목 직접 입력</div></div><span style="color:var(--accent);font-size:18px;">›</span></div>
       ${optionsHTML}
