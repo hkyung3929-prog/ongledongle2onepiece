@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>주식 매매일지</title>
+<title>ONGLEDONGLE</title>
 <style>
 :root {
   --bg:#f2f7f4; --bg2:#ffffff; --bg3:#edf5f0; --card:#ffffff;
@@ -1337,6 +1337,7 @@ window.selectRankStock=selectRankStock;window.openRankNewStock=openRankNewStock;
 window.openMetricForm=openMetricForm;window.closeMetricForm=closeMetricForm;window.saveMetrics=saveMetrics;
 window.exportCSV=exportCSV;window.exportJSON=exportJSON;window.importJSON=importJSON;window.clearAll=clearAll;
 window.renderFolderTabs=renderFolderTabs;window.renderFolderSelect=renderFolderSelect;
+window._appRender=_render; // enterApp에서 사용
 
 /* ── Init ── */
 document.getElementById('positionList').innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">데이터 불러오는 중...</div></div>';
@@ -1346,22 +1347,15 @@ document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('popstate',()=>{if(sectionHistory.length){const p=sectionHistory.pop();_render(p);}});
 history.pushState({},'');
 
-/* ── 표지 ── */
-(function(){
-  const wrap=document.getElementById('coverDots');
-  for(let i=0;i<28;i++){
-    const d=document.createElement('div');d.className='cover-dot';
-    const size=Math.random()*3+1.5;
-    d.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${(Math.random()*3+2).toFixed(1)}s;--delay:-${(Math.random()*4).toFixed(1)}s;`;
-    wrap.appendChild(d);
-  }
-})();
-
 window.enterApp=function(section){
   const cover=document.getElementById('coverWrap');
   cover.style.transition='opacity .5s ease, transform .5s ease';
   cover.style.opacity='0';cover.style.transform='scale(1.04)';
-  setTimeout(()=>{cover.classList.add('hidden');_render(section);},450);
+  setTimeout(()=>{
+    cover.classList.add('hidden');
+    // _render는 module에서 로딩 후 window에 노출
+    if(window._appRender) window._appRender(section);
+  },450);
 };
 window.goHome=function(){
   const cover=document.getElementById('coverWrap');
@@ -1415,6 +1409,19 @@ window.goHome=function(){
       }, 800);
     }
   }
+
+  // 표지 파티클
+  (function(){
+    var wrap=document.getElementById('coverDots');
+    if(!wrap) return;
+    for(var i=0;i<28;i++){
+      var d=document.createElement('div');
+      d.className='cover-dot';
+      var size=Math.random()*3+1.5;
+      d.style.cssText='width:'+size+'px;height:'+size+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;--dur:'+(Math.random()*3+2).toFixed(1)+'s;--delay:-'+(Math.random()*4).toFixed(1)+'s;';
+      wrap.appendChild(d);
+    }
+  })();
 
   // 잠금화면 파티클
   (function(){
