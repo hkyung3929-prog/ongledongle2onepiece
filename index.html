@@ -258,6 +258,9 @@ select option{background:#fff;}
 .folder-tab-bar{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;}
 .folder-tab-bar::-webkit-scrollbar{display:none;}
 .folder-tab{flex-shrink:0;padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+/* 폴더 수정 바 */
+.folder-edit-bar{background:linear-gradient(135deg,#edf5f0,#d6ede0);border:1.5px solid var(--accent);border-radius:var(--radius);padding:14px;margin-top:10px;}
+.folder-edit-bar-mini{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;margin-top:8px;}
 .folder-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(34,139,87,.25);}
 .folder-tab .folder-del{font-size:11px;opacity:.7;margin-left:2px;}
 
@@ -375,7 +378,8 @@ select option{background:#fff;}
     'saveMetrics','exportCSV','exportJSON','importJSON','clearAll',
     'openFolderCreate','closeFolderCreate','toggleEmojiPicker','selectFolderEmoji',
     'saveFolder','setFolderTab','deleteFolder','renderFolderTabs','renderFolderSelect',
-    'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder'
+    'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder',
+    'openFolderEdit','cancelFolderEdit','toggleFolderEditEmoji','selectFolderEditEmoji','saveFolderEdit','renderFolderEditBar'
   ];
   FNAMES.forEach(function(name){
     if(!window[name]){
@@ -747,6 +751,9 @@ let currentFolderTab='all'; // 현재 선택된 폴더 탭
 let folderCreateOpen=false;
 let folderEmojiOpen=false;
 let folderSelectedEmoji='📁';
+let folderEditingId=null;
+let folderEditEmoji='📁';
+let folderEditEmojiOpen=false;
 
 /* ── Firestore load/save ── */
 async function load(){
@@ -1254,6 +1261,39 @@ function renderFolderTabs(){
   if(!bar)return;
   bar.innerHTML=`<button class="folder-tab ${currentFolderTab==='all'?'active':''}" onclick="setFolderTab('all',this)">전체</button>`
     +folders.map(f=>`<button class="folder-tab ${currentFolderTab===f.id?'active':''}" onclick="setFolderTab('${f.id}',this)">${f.emoji} ${f.name}</button>`).join('');
+  // 수정 바 업데이트
+  renderFolderEditBar();
+}
+
+function renderFolderEditBar(){
+  let bar=document.getElementById('folderEditBar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='folderEditBar';
+    const tabBar=document.getElementById('folderTabBar');
+    tabBar?.insertAdjacentElement('afterend',bar);
+  }
+  if(currentFolderTab==='all'){bar.innerHTML='';return;}
+  const f=folders.find(f=>f.id===currentFolderTab);
+  if(!f){bar.innerHTML='';return;}
+  const isEditing=folderEditingId===f.id;
+  bar.innerHTML=isEditing?`
+    <div class="folder-edit-bar">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <div class="folder-emoji-btn" onclick="toggleFolderEditEmoji()" style="font-size:18px;width:40px;height:40px;">${folderEditEmoji}</div>
+        <input type="text" id="folderEditName" value="${f.name}" style="flex:1;" placeholder="폴더 이름">
+      </div>
+      ${folderEditEmojiOpen?`<div class="folder-emoji-picker">${FOLDER_EMOJIS.map(e=>`<div onclick="selectFolderEditEmoji('${e}')" style="font-size:22px;cursor:pointer;padding:4px;">${e}</div>`).join('')}</div>`:''}
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;padding:10px;" onclick="saveFolderEdit('${f.id}')">저장</button>
+        <button class="btn btn-outline" onclick="cancelFolderEdit()">취소</button>
+        <button class="btn btn-outline" style="color:var(--loss);border-color:rgba(239,68,68,.4);" onclick="deleteFolder('${f.id}')">삭제</button>
+      </div>
+    </div>`
+  :`<div class="folder-edit-bar-mini">
+      <span style="font-size:13px;font-weight:600;color:var(--muted);">${f.emoji} ${f.name}</span>
+      <button class="btn btn-ghost" style="font-size:12px;border:1px solid var(--border2);" onclick="openFolderEdit('${f.id}')">✏️ 수정</button>
+    </div>`;
 }
 function renderFolderSelect(){
   const sel=document.getElementById('ns-folder');
@@ -1279,7 +1319,42 @@ function renderFolderCreateArea(){
     </div>
   </div>`;
 }
-function openFolderCreate(){folderCreateOpen=true;folderEmojiOpen=false;folderSelectedEmoji='📁';renderFolderCreateArea();setTimeout(()=>document.getElementById('folderNameInput')?.focus(),80);}
+function openFolderEdit(fid){
+  const f=folders.find(f=>f.id===fid);
+  if(!f)return;
+  folderEditingId=fid;
+  folderEditEmoji=f.emoji;
+  folderEditEmojiOpen=false;
+  renderFolderEditBar();
+}
+function cancelFolderEdit(){
+  folderEditingId=null;
+  folderEditEmojiOpen=false;
+  renderFolderEditBar();
+}
+function toggleFolderEditEmoji(){
+  folderEditEmojiOpen=!folderEditEmojiOpen;
+  renderFolderEditBar();
+}
+function selectFolderEditEmoji(e){
+  folderEditEmoji=e;
+  folderEditEmojiOpen=false;
+  renderFolderEditBar();
+}
+async function saveFolderEdit(fid){
+  const f=folders.find(f=>f.id===fid);
+  if(!f)return;
+  const name=document.getElementById('folderEditName')?.value.trim();
+  if(!name){showToast('폴더 이름을 입력하세요.',true);return;}
+  f.name=name;
+  f.emoji=folderEditEmoji;
+  await save();
+  folderEditingId=null;
+  folderEditEmojiOpen=false;
+  renderFolderTabs();
+  renderFolderSelect();
+  showToast('✅ 폴더 수정 완료!');
+}
 function closeFolderCreate(){folderCreateOpen=false;folderEmojiOpen=false;renderFolderCreateArea();}
 function toggleEmojiPicker(){folderEmojiOpen=!folderEmojiOpen;renderFolderCreateArea();}
 function selectFolderEmoji(e){folderSelectedEmoji=e;folderEmojiOpen=false;renderFolderCreateArea();}
@@ -1547,7 +1622,8 @@ var _exports = {
   saveMetrics,exportCSV,exportJSON,importJSON,clearAll,
   openFolderCreate,closeFolderCreate,toggleEmojiPicker,selectFolderEmoji,
   saveFolder,setFolderTab,deleteFolder,renderFolderTabs,renderFolderSelect,
-  enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder
+  enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder,
+  openFolderEdit,cancelFolderEdit,toggleFolderEditEmoji,selectFolderEditEmoji,saveFolderEdit,renderFolderEditBar
 };
 Object.keys(_exports).forEach(function(name){
   window['_real_'+name] = _exports[name];
