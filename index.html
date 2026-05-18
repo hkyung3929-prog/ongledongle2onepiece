@@ -1347,22 +1347,6 @@ document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('popstate',()=>{if(sectionHistory.length){const p=sectionHistory.pop();_render(p);}});
 history.pushState({},'');
 
-window.enterApp=function(section){
-  const cover=document.getElementById('coverWrap');
-  cover.style.transition='opacity .5s ease, transform .5s ease';
-  cover.style.opacity='0';cover.style.transform='scale(1.04)';
-  setTimeout(()=>{
-    cover.classList.add('hidden');
-    // _render는 module에서 로딩 후 window에 노출
-    if(window._appRender) window._appRender(section);
-  },450);
-};
-window.goHome=function(){
-  const cover=document.getElementById('coverWrap');
-  cover.style.transition='none';cover.style.opacity='0';cover.style.transform='scale(1.04)';
-  cover.classList.remove('hidden');
-  requestAnimationFrame(()=>{cover.style.transition='opacity .45s ease, transform .45s ease';cover.style.opacity='1';cover.style.transform='scale(1)';});
-};
 </script>
 <!-- ── 비밀번호 (일반 script - 즉시 실행) ── -->
 <script>
@@ -1439,6 +1423,42 @@ window.goHome=function(){
   // 전역 노출
   window.lockInput = input;
   window.lockDelete = del;
+
+  // 표지 전환 함수 (즉시 정의 - module 로딩 불필요)
+  window.enterApp = function(section) {
+    var cover = document.getElementById('coverWrap');
+    cover.style.transition = 'opacity .5s ease, transform .5s ease';
+    cover.style.opacity = '0';
+    cover.style.transform = 'scale(1.04)';
+    setTimeout(function() {
+      cover.classList.add('hidden');
+      // module 로딩 완료 후 _appRender 사용, 미완료면 대기
+      if(window._appRender) {
+        window._appRender(section);
+      } else {
+        // 아직 로딩 중이면 준비될 때까지 대기
+        var wait = setInterval(function(){
+          if(window._appRender){
+            clearInterval(wait);
+            window._appRender(section);
+          }
+        }, 50);
+      }
+    }, 450);
+  };
+
+  window.goHome = function() {
+    var cover = document.getElementById('coverWrap');
+    cover.style.transition = 'none';
+    cover.style.opacity = '0';
+    cover.style.transform = 'scale(1.04)';
+    cover.classList.remove('hidden');
+    requestAnimationFrame(function(){
+      cover.style.transition = 'opacity .45s ease, transform .45s ease';
+      cover.style.opacity = '1';
+      cover.style.transform = 'scale(1)';
+    });
+  };
 })();
 </script>
 </body>
