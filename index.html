@@ -1208,6 +1208,70 @@ function renderStats(){
   if(me.length){mc.style.display='block';const mx=Math.max(...me.map(([,v])=>Math.abs(v)));document.getElementById('monthChart').innerHTML=me.map(([m,v])=>`<div class="bar-row"><div class="bar-label">${m}</div><div class="bar-track"><div class="bar-fill ${v>=0?'pos':'neg'}" style="width:${Math.abs(v)/mx*100}%"></div></div><div class="bar-val ${v>=0?'green':'red'}">${v>=0?'+':''}${fmt(v)}</div></div>`).join('');}else mc.style.display='none';
 }
 
+/* ── 폴더 ── */
+const FOLDER_EMOJIS=['📁','📂','⭐','🚀','💎','🌱','🔥','💰','📈','🏆','🎯','🌍','🏦','💡','🛡️','⚡'];
+
+function renderFolderTabs(){
+  const bar=document.getElementById('folderTabBar');
+  if(!bar)return;
+  bar.innerHTML=`<button class="folder-tab ${currentFolderTab==='all'?'active':''}" onclick="setFolderTab('all',this)">전체</button>`
+    +folders.map(f=>`<button class="folder-tab ${currentFolderTab===f.id?'active':''}" onclick="setFolderTab('${f.id}',this)">${f.emoji} ${f.name}</button>`).join('');
+}
+function renderFolderSelect(){
+  const sel=document.getElementById('ns-folder');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">폴더 없음</option>'
+    +folders.map(f=>`<option value="${f.id}" ${cur===f.id?'selected':''}>${f.emoji} ${f.name}</option>`).join('');
+}
+function renderFolderCreateArea(){
+  const area=document.getElementById('folderCreateArea');
+  if(!area)return;
+  if(!folderCreateOpen){area.innerHTML='';return;}
+  area.innerHTML=`<div class="folder-create-form">
+    <h4>📁 새 폴더 만들기</h4>
+    <div class="folder-create-row">
+      <div class="folder-emoji-btn" onclick="toggleEmojiPicker()" id="folderEmojiBtn">${folderSelectedEmoji}</div>
+      <input type="text" id="folderNameInput" placeholder="폴더 이름 입력" style="flex:1;">
+    </div>
+    ${folderEmojiOpen?`<div class="folder-emoji-picker">${FOLDER_EMOJIS.map(e=>`<div onclick="selectFolderEmoji('${e}')" style="font-size:24px;cursor:pointer;padding:4px;">${e}</div>`).join('')}</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-primary" style="flex:1;padding:11px;" onclick="saveFolder()">만들기</button>
+      <button class="btn btn-outline" onclick="closeFolderCreate()">취소</button>
+    </div>
+  </div>`;
+}
+function openFolderCreate(){folderCreateOpen=true;folderEmojiOpen=false;folderSelectedEmoji='📁';renderFolderCreateArea();setTimeout(()=>document.getElementById('folderNameInput')?.focus(),80);}
+function closeFolderCreate(){folderCreateOpen=false;folderEmojiOpen=false;renderFolderCreateArea();}
+function toggleEmojiPicker(){folderEmojiOpen=!folderEmojiOpen;renderFolderCreateArea();}
+function selectFolderEmoji(e){folderSelectedEmoji=e;folderEmojiOpen=false;renderFolderCreateArea();}
+async function saveFolder(){
+  const name=document.getElementById('folderNameInput')?.value.trim();
+  if(!name){showToast('폴더 이름을 입력하세요.',true);return;}
+  if(folders.find(f=>f.name===name)){showToast('같은 이름의 폴더가 있어요.',true);return;}
+  folders.push({id:uid(),name,emoji:folderSelectedEmoji});
+  await save();
+  folderCreateOpen=false;folderEmojiOpen=false;
+  renderFolderTabs();renderFolderSelect();renderFolderCreateArea();
+  showToast('✅ 폴더 생성 완료!');
+}
+function setFolderTab(fid,el){
+  currentFolderTab=fid;
+  document.querySelectorAll('.folder-tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderRanking();
+}
+async function deleteFolder(fid){
+  showModal('폴더를 삭제할까요?','폴더만 삭제되고 종목 데이터는 유지돼요.',async()=>{
+    folders=folders.filter(f=>f.id!==fid);
+    stocks.forEach(s=>{if(s.folderId===fid)s.folderId='';});
+    await save();
+    if(currentFolderTab===fid)currentFolderTab='all';
+    renderFolderTabs();renderFolderSelect();renderRanking();
+    showToast('폴더 삭제 완료');
+  });
+}
+
 /* ── 랭킹 ── */
 let rankFilter='all',metricFormSid=null,rankAddOpen=false,rankNewStockOpen=false,rankSelectedSid=null;
 function setRankFilter(f,el){rankFilter=f;document.querySelectorAll('#sec-ranking .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderRanking();}
