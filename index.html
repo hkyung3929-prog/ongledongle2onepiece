@@ -275,23 +275,19 @@ select option{background:#fff;}
 .lock-wrap{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d1f12;overflow:hidden;}
 .lock-wrap.hidden{display:none;}
 .lock-bg{position:absolute;inset:0;overflow:hidden;}
-.lock-wave{position:absolute;border-radius:50%;opacity:.15;}
-.lock-wave-1{width:500px;height:500px;top:-100px;left:-150px;background:radial-gradient(circle,#22883a,transparent 70%);animation:wavePulse 7s ease-in-out infinite;}
-.lock-wave-2{width:400px;height:400px;bottom:-80px;right:-100px;background:radial-gradient(circle,#16a34a,transparent 70%);animation:wavePulse 9s ease-in-out infinite reverse;}
 .lock-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:0 40px;width:100%;max-width:340px;}
-.lock-icon{font-size:48px;margin-bottom:16px;animation:iconFloat 4s ease-in-out infinite;}
-.lock-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;}
-.lock-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:36px;}
-.lock-dots{display:flex;gap:14px;margin-bottom:32px;}
+.lock-icon{font-size:52px;margin-bottom:14px;filter:drop-shadow(0 4px 16px rgba(74,222,128,.5));animation:iconFloat 4s ease-in-out infinite;}
+.lock-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:28px;letter-spacing:.5px;}
+.lock-dots{display:flex;gap:14px;margin-bottom:28px;}
 .lock-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .2s;}
 .lock-dot.filled{background:#4ade80;border-color:#4ade80;box-shadow:0 0 10px rgba(74,222,128,.5);}
 .lock-dot.error{background:#ef4444;border-color:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.5);animation:shake .4s ease;}
 .lock-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;}
-.lock-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;color:#fff;font-size:22px;font-weight:700;padding:18px;cursor:pointer;transition:all .15s;text-align:center;}
+.lock-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:16px;color:#fff;font-size:22px;font-weight:700;padding:18px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;-webkit-user-select:none;}
 .lock-key:active{background:rgba(74,222,128,.25);border-color:#4ade80;transform:scale(.94);}
 .lock-key.del{font-size:18px;}
 .lock-key.empty{background:transparent;border:none;cursor:default;}
-.lock-error-msg{font-size:13px;color:#ef4444;margin-top:16px;height:18px;font-weight:600;}
+.lock-error-msg{font-size:13px;color:#ef4444;margin-top:12px;height:18px;font-weight:600;}
 @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
 .cover-wrap{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#0d1f12;}
 .cover-wrap.hidden{display:none;}
@@ -349,12 +345,15 @@ select option{background:#fff;}
 <!-- ── 비밀번호 화면 ── -->
 <div class="lock-wrap" id="lockWrap">
   <div class="lock-bg">
-    <div class="lock-wave lock-wave-1"></div>
-    <div class="lock-wave lock-wave-2"></div>
+    <div class="cover-wave cover-wave-1"></div>
+    <div class="cover-wave cover-wave-2"></div>
+    <div class="cover-wave cover-wave-3"></div>
+    <div class="cover-dots" id="lockDots"></div>
   </div>
   <div class="lock-content">
-    <div class="lock-icon">🔐</div>
-    <div class="lock-title">ONGLEDONGLE</div>
+    <div class="lock-icon">🏴‍☠️</div>
+    <div class="cover-title" style="color:rgba(255,255,255,.55);font-size:12px;letter-spacing:3px;margin-bottom:6px;">STOCK TRADING JOURNAL</div>
+    <div class="cover-main-title" style="font-size:26px;font-weight:900;color:#fff;text-align:center;line-height:1.25;margin-bottom:4px;letter-spacing:-0.5px;">ONGLEDONGLE<br><span style="background:linear-gradient(135deg,#4ade80,#86efac);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">to Onepiece</span></div>
     <div class="lock-sub">비밀번호를 입력하세요</div>
     <div class="lock-dots">
       <div class="lock-dot" id="ld0"></div>
@@ -363,20 +362,21 @@ select option{background:#fff;}
       <div class="lock-dot" id="ld3"></div>
     </div>
     <div class="lock-keypad">
-      <div class="lock-key" onclick="lockInput('1')">1</div>
-      <div class="lock-key" onclick="lockInput('2')">2</div>
-      <div class="lock-key" onclick="lockInput('3')">3</div>
-      <div class="lock-key" onclick="lockInput('4')">4</div>
-      <div class="lock-key" onclick="lockInput('5')">5</div>
-      <div class="lock-key" onclick="lockInput('6')">6</div>
-      <div class="lock-key" onclick="lockInput('7')">7</div>
-      <div class="lock-key" onclick="lockInput('8')">8</div>
-      <div class="lock-key" onclick="lockInput('9')">9</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('1')">1</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('2')">2</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('3')">3</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('4')">4</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('5')">5</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('6')">6</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('7')">7</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('8')">8</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('9')">9</div>
       <div class="lock-key empty"></div>
-      <div class="lock-key" onclick="lockInput('0')">0</div>
-      <div class="lock-key del" onclick="lockDelete()">⌫</div>
+      <div class="lock-key" onclick="window.lockInput&&window.lockInput('0')">0</div>
+      <div class="lock-key del" onclick="window.lockDelete&&window.lockDelete()">⌫</div>
     </div>
     <div class="lock-error-msg" id="lockError"></div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:20px;letter-spacing:.3px;">⚓ 항해는 계속된다</div>
   </div>
 </div>
 
@@ -1338,53 +1338,6 @@ window.openMetricForm=openMetricForm;window.closeMetricForm=closeMetricForm;wind
 window.exportCSV=exportCSV;window.exportJSON=exportJSON;window.importJSON=importJSON;window.clearAll=clearAll;
 window.renderFolderTabs=renderFolderTabs;window.renderFolderSelect=renderFolderSelect;
 
-/* ── 비밀번호 ── */
-const LOCK_PW = '0706';
-let lockInput_val = '';
-
-window.lockInput = function(n) {
-  if(lockInput_val.length >= 4) return;
-  lockInput_val += n;
-  updateLockDots();
-  if(lockInput_val.length === 4) {
-    setTimeout(() => checkLockPW(), 120);
-  }
-};
-window.lockDelete = function() {
-  lockInput_val = lockInput_val.slice(0, -1);
-  updateLockDots();
-  document.getElementById('lockError').textContent = '';
-};
-function updateLockDots() {
-  for(let i = 0; i < 4; i++) {
-    const dot = document.getElementById('ld' + i);
-    dot.classList.toggle('filled', i < lockInput_val.length);
-    dot.classList.remove('error');
-  }
-}
-function checkLockPW() {
-  if(lockInput_val === LOCK_PW) {
-    // 정답 — 잠금 해제
-    const lw = document.getElementById('lockWrap');
-    lw.style.transition = 'opacity .4s ease';
-    lw.style.opacity = '0';
-    setTimeout(() => lw.classList.add('hidden'), 400);
-  } else {
-    // 오답 — 흔들기 + 초기화
-    for(let i = 0; i < 4; i++) {
-      const dot = document.getElementById('ld' + i);
-      dot.classList.remove('filled');
-      dot.classList.add('error');
-    }
-    document.getElementById('lockError').textContent = '비밀번호가 틀렸어요';
-    setTimeout(() => {
-      lockInput_val = '';
-      updateLockDots();
-      document.getElementById('lockError').textContent = '';
-    }, 800);
-  }
-}
-
 /* ── Init ── */
 document.getElementById('positionList').innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">데이터 불러오는 중...</div></div>';
 await load();
@@ -1416,6 +1369,70 @@ window.goHome=function(){
   cover.classList.remove('hidden');
   requestAnimationFrame(()=>{cover.style.transition='opacity .45s ease, transform .45s ease';cover.style.opacity='1';cover.style.transform='scale(1)';});
 };
+</script>
+<!-- ── 비밀번호 (일반 script - 즉시 실행) ── -->
+<script>
+(function(){
+  var LOCK_PW = '0706';
+  var val = '';
+
+  function input(n){
+    if(val.length >= 4) return;
+    val += n;
+    updateDots();
+    if(val.length === 4) setTimeout(check, 120);
+  }
+  function del(){
+    val = val.slice(0,-1);
+    updateDots();
+    document.getElementById('lockError').textContent='';
+  }
+  function updateDots(){
+    for(var i=0;i<4;i++){
+      var d=document.getElementById('ld'+i);
+      if(!d) return;
+      d.classList.toggle('filled', i < val.length);
+      d.classList.remove('error');
+    }
+  }
+  function check(){
+    if(val === LOCK_PW){
+      var lw=document.getElementById('lockWrap');
+      lw.style.transition='opacity .4s ease';
+      lw.style.opacity='0';
+      setTimeout(()=>lw.classList.add('hidden'), 400);
+    } else {
+      for(var i=0;i<4;i++){
+        var d=document.getElementById('ld'+i);
+        d.classList.remove('filled');
+        d.classList.add('error');
+      }
+      document.getElementById('lockError').textContent='비밀번호가 틀렸어요';
+      setTimeout(()=>{
+        val='';
+        updateDots();
+        document.getElementById('lockError').textContent='';
+      }, 800);
+    }
+  }
+
+  // 잠금화면 파티클
+  (function(){
+    var wrap=document.getElementById('lockDots');
+    if(!wrap) return;
+    for(var i=0;i<20;i++){
+      var d=document.createElement('div');
+      d.className='cover-dot';
+      var size=Math.random()*3+1.5;
+      d.style.cssText='width:'+size+'px;height:'+size+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;--dur:'+(Math.random()*3+2).toFixed(1)+'s;--delay:-'+(Math.random()*4).toFixed(1)+'s;';
+      wrap.appendChild(d);
+    }
+  })();
+
+  // 전역 노출
+  window.lockInput = input;
+  window.lockDelete = del;
+})();
 </script>
 </body>
 </html>
