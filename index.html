@@ -369,7 +369,7 @@ select option{background:#fff;}
 (function(){
   var Q = {}; // 함수명 → 대기 호출 큐
   var FNAMES = [
-    'showSection','goBack','enterSelectMode','exitSelectMode','toggleSelect',
+    'showSection','goBack','enterSelectMode','exitSelectMode','toggleSelect','setPosFilter',
     'confirmDeleteSelected','closeModal','addStockAndTrade','setAddType','updateAddProfit',
     'showStockDetail','toggleStockEdit','saveStockEdit','openPosAdd','openAdd',
     'startEdit','closeInlineForm','setInlineType','updateInlineProfit','saveTrade',
@@ -534,8 +534,12 @@ select option{background:#fff;}
     </div>
   </div>
   <div class="content" style="padding-top:14px;">
-    <div id="posListHeader" style="display:flex;justify-content:flex-end;margin-bottom:10px;">
-      <button class="btn-select-mode" onclick="window.enterSelectMode&&window.enterSelectMode()">선택 삭제</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="filter-bar" style="margin-bottom:0;">
+        <button class="filter-chip active" id="posFilterAll" onclick="window.setPosFilter&&window.setPosFilter('all',this)">전체</button>
+        <button class="filter-chip" id="posFilterHold" onclick="window.setPosFilter&&window.setPosFilter('hold',this)">보유중</button>
+      </div>
+      <button class="btn-select-mode" id="posListHeader" onclick="window.enterSelectMode&&window.enterSelectMode()">선택 삭제</button>
     </div>
     <div id="positionList"></div>
   </div>
@@ -747,6 +751,7 @@ let _detailSid=null;
 let selectMode=false;
 let selectedIds=new Set();
 let _saving=false;
+let posFilter='all'; // 종목별 탭 필터
 let currentFolderTab='all'; // 현재 선택된 폴더 탭
 let folderCreateOpen=false;
 let folderEmojiOpen=false;
@@ -975,13 +980,37 @@ async function addStockAndTrade(){
 }
 
 /* ── 종목별 ── */
+function setPosFilter(f, el){
+  posFilter=f;
+  document.querySelectorAll('#sec-positions .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderPositions();
+}
+
 function renderPositions(){
   if(!selectMode)editingStockId=null;
   const c=document.getElementById('positionList');
   const hdr=document.getElementById('posListHeader');
-  if(hdr)hdr.style.display=selectMode?'none':'flex';
-  if(!stocks.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 기록하기" 탭을 눌러 시작하세요.</div></div>';return;}
-  c.innerHTML=stocks.map(s=>posCardHTML(s)).join('');
+  if(hdr)hdr.style.display=selectMode?'none':'';
+
+  // 필터 적용
+  let list=[...stocks];
+  if(posFilter==='hold'){
+    list=list.filter(s=>{
+      const p=calcPosition(s.id);
+      return p.remainQty>0.0001;
+    });
+  }
+  // 가나다순 정렬
+  list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+
+  if(!list.length){
+    c.innerHTML=posFilter==='hold'
+      ?'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">보유중인 종목이 없어요.</div></div>'
+      :'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 기록하기" 탭을 눌러 시작하세요.</div></div>';
+    return;
+  }
+  c.innerHTML=list.map(s=>posCardHTML(s)).join('');
 }
 function posCardHTML(s){
   const p=calcPosition(s.id);
@@ -1634,7 +1663,7 @@ async function clearAll(){
 
 /* ── 전역 함수 노출 (_real_ prefix로 proxy와 연결) ── */
 var _exports = {
-  showSection,goBack,enterSelectMode,exitSelectMode,toggleSelect,
+  showSection,goBack,enterSelectMode,exitSelectMode,toggleSelect,setPosFilter,
   confirmDeleteSelected,closeModal,addStockAndTrade,setAddType,updateAddProfit,
   showStockDetail,toggleStockEdit,saveStockEdit,openPosAdd,openAdd,
   startEdit,closeInlineForm,setInlineType,updateInlineProfit,saveTrade,
