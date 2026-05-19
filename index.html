@@ -369,7 +369,7 @@ select option{background:#fff;}
 (function(){
   var Q = {}; // 함수명 → 대기 호출 큐
   var FNAMES = [
-    'showSection','goBack','enterSelectMode','exitSelectMode','toggleSelect','setPosFilter',
+    'showSection','goBack','enterSelectMode','exitSelectMode','toggleSelect','setPosFilter','onPosSearch',
     'confirmDeleteSelected','closeModal','addStockAndTrade','setAddType','updateAddProfit',
     'showStockDetail','toggleStockEdit','saveStockEdit','openPosAdd','openAdd',
     'startEdit','closeInlineForm','setInlineType','updateInlineProfit','saveTrade',
@@ -534,6 +534,13 @@ select option{background:#fff;}
     </div>
   </div>
   <div class="content" style="padding-top:14px;">
+    <!-- 검색창 -->
+    <div style="position:relative;margin-bottom:12px;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;">🔍</span>
+      <input type="text" id="posSearchInput" placeholder="종목명 검색..."
+        style="padding-left:36px;width:100%;background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-sm);"
+        oninput="window.onPosSearch&&window.onPosSearch()">
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div class="filter-bar" style="margin-bottom:0;">
         <button class="filter-chip active" id="posFilterAll" onclick="window.setPosFilter&&window.setPosFilter('all',this)">전체</button>
@@ -986,12 +993,17 @@ function setPosFilter(f, el){
   el.classList.add('active');
   renderPositions();
 }
+function onPosSearch(){
+  renderPositions();
+}
 
 function renderPositions(){
   if(!selectMode)editingStockId=null;
   const c=document.getElementById('positionList');
   const hdr=document.getElementById('posListHeader');
   if(hdr)hdr.style.display=selectMode?'none':'';
+
+  const keyword=(document.getElementById('posSearchInput')?.value||'').trim().toLowerCase();
 
   // 필터 적용
   let list=[...stocks];
@@ -1001,13 +1013,19 @@ function renderPositions(){
       return p.remainQty>0.0001;
     });
   }
+  // 검색어 필터
+  if(keyword){
+    list=list.filter(s=>s.name.toLowerCase().includes(keyword));
+  }
   // 가나다순 정렬
   list.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
 
   if(!list.length){
-    c.innerHTML=posFilter==='hold'
-      ?'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">보유중인 종목이 없어요.</div></div>'
-      :'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 기록하기" 탭을 눌러 시작하세요.</div></div>';
+    c.innerHTML=keyword
+      ?`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">"${keyword}"에 해당하는 종목이 없어요.</div></div>`
+      :posFilter==='hold'
+        ?'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">보유중인 종목이 없어요.</div></div>'
+        :'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">등록된 종목이 없어요.<br>"+ 기록하기" 탭을 눌러 시작하세요.</div></div>';
     return;
   }
   c.innerHTML=list.map(s=>posCardHTML(s)).join('');
@@ -1663,7 +1681,7 @@ async function clearAll(){
 
 /* ── 전역 함수 노출 (_real_ prefix로 proxy와 연결) ── */
 var _exports = {
-  showSection,goBack,enterSelectMode,exitSelectMode,toggleSelect,setPosFilter,
+  showSection,goBack,enterSelectMode,exitSelectMode,toggleSelect,setPosFilter,onPosSearch,
   confirmDeleteSelected,closeModal,addStockAndTrade,setAddType,updateAddProfit,
   showStockDetail,toggleStockEdit,saveStockEdit,openPosAdd,openAdd,
   startEdit,closeInlineForm,setInlineType,updateInlineProfit,saveTrade,
