@@ -254,6 +254,23 @@ select option{background:#fff;}
 .rank-new-stock-form label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;font-weight:600;}
 .green{color:var(--gain);} .red{color:var(--loss);} .neutral{color:var(--muted);}
 
+/* 배당금 카드 */
+.div-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:9px;box-shadow:var(--shadow);}
+.div-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.div-stock-name{font-size:15px;font-weight:800;}
+.div-date{font-size:11px;color:var(--muted);margin-top:2px;}
+.div-amount{font-size:18px;font-weight:800;color:var(--gain);}
+.div-net{font-size:12px;color:var(--muted);margin-top:2px;}
+.div-memo{font-size:12px;color:var(--muted);background:var(--bg3);border-radius:8px;padding:7px 10px;margin-top:8px;border-left:3px solid rgba(34,139,87,.25);}
+
+/* 수익률 카드 */
+.ret-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.ret-name{font-size:16px;font-weight:800;margin-bottom:10px;}
+.ret-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ret-item{background:var(--bg3);border-radius:8px;padding:9px;}
+.ret-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;font-weight:600;margin-bottom:4px;}
+.ret-value{font-size:14px;font-weight:700;}
+
 /* ── 폴더 탭 ── */
 .folder-tab-bar{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;}
 .folder-tab-bar::-webkit-scrollbar{display:none;}
@@ -376,6 +393,7 @@ select option{background:#fff;}
     'delTrade','delStock','setFilter','setRankFilter','openRankAdd','closeRankAdd',
     'selectRankStock','openRankNewStock','saveRankAdd','openMetricForm','closeMetricForm',
     'saveMetrics','exportCSV','exportJSON','importJSON','clearAll',
+    'saveDividend','deleteDividend','renderDividend','renderReturns',
     'openFolderCreate','closeFolderCreate','toggleEmojiPicker','selectFolderEmoji',
     'saveFolder','setFolderTab','deleteFolder','renderFolderTabs','renderFolderSelect',
     'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder',
@@ -467,6 +485,22 @@ select option{background:#fff;}
         </div>
         <div class="cmb-arrow">›</div>
       </button>
+      <button class="cover-menu-btn cmb-list" onclick="window.enterApp&&window.enterApp('dividend')">
+        <div class="cmb-icon">💰</div>
+        <div class="cmb-text">
+          <div class="cmb-label">배당금</div>
+          <div class="cmb-desc">배당금 입력 및 내역</div>
+        </div>
+        <div class="cmb-arrow">›</div>
+      </button>
+      <button class="cover-menu-btn cmb-stats" onclick="window.enterApp&&window.enterApp('returns')">
+        <div class="cmb-icon">📈</div>
+        <div class="cmb-text">
+          <div class="cmb-label">수익률</div>
+          <div class="cmb-desc">전체 · 매도 · 배당 수익률</div>
+        </div>
+        <div class="cmb-arrow">›</div>
+      </button>
       <button class="cover-menu-btn cmb-ranking" onclick="window.enterApp&&window.enterApp('ranking')">
         <div class="cmb-icon">🏆</div>
         <div class="cmb-text">
@@ -520,6 +554,8 @@ select option{background:#fff;}
   <button class="tab-btn active" onclick="window.showSection&&window.showSection('positions')">종목별</button>
   <button class="tab-btn" onclick="window.showSection&&window.showSection('list')">거래내역</button>
   <button class="tab-btn" onclick="window.showSection&&window.showSection('add')">+ 기록하기</button>
+  <button class="tab-btn" onclick="window.showSection&&window.showSection('dividend')">💰 배당금</button>
+  <button class="tab-btn" onclick="window.showSection&&window.showSection('returns')">📈 수익률</button>
   <button class="tab-btn" onclick="window.showSection&&window.showSection('ranking')">🏆 랭킹</button>
   <button class="tab-btn" onclick="window.showSection&&window.showSection('stats')">통계</button>
 </div>
@@ -661,6 +697,73 @@ select option{background:#fff;}
   <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px;">이미 등록된 종목은 종목별 탭에서 거래를 추가할 수 있어요</p>
 </div>
 
+<!-- 배당금 -->
+<div class="section content" id="sec-dividend">
+  <!-- 입력 카드 -->
+  <div class="form-card" id="dividendFormCard">
+    <h3>💰 배당금 입력</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>날짜</label>
+        <input type="date" id="div-date">
+      </div>
+      <div class="form-group">
+        <label>종목</label>
+        <select id="div-stock">
+          <option value="">종목 선택</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>배당금 (원/$)</label>
+        <input type="number" id="div-amount" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>세후 실수령액 (선택)</label>
+        <input type="number" id="div-net" placeholder="세금 제외 후">
+      </div>
+      <div class="form-group full">
+        <label>메모</label>
+        <input type="text" id="div-memo" placeholder="분기 배당, 특별 배당 등">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:4px;" onclick="window.saveDividend&&window.saveDividend()">배당금 저장</button>
+  </div>
+
+  <!-- 배당금 합계 카드 -->
+  <div class="detail-stats" style="margin-bottom:14px;">
+    <div class="ds-card"><div class="ds-label">총 배당금</div><div class="ds-value green" id="div-total">-</div></div>
+    <div class="ds-card"><div class="ds-label">세후 실수령</div><div class="ds-value green" id="div-net-total">-</div></div>
+    <div class="ds-card"><div class="ds-label">배당 횟수</div><div class="ds-value" id="div-count">0회</div></div>
+    <div class="ds-card"><div class="ds-label">배당 종목수</div><div class="ds-value" id="div-stocks">0종목</div></div>
+  </div>
+
+  <!-- 배당금 목록 -->
+  <div class="section-title" style="margin-bottom:10px;">배당 내역</div>
+  <div id="dividendList"></div>
+</div>
+
+<!-- 수익률 -->
+<div class="section content" id="sec-returns">
+  <!-- 전체 수익률 -->
+  <div class="detail-hero" style="margin-bottom:16px;">
+    <div class="dh-name">전체 수익률</div>
+    <div class="dh-sub">매도 차익 + 배당금 합산</div>
+    <div class="dh-pnl" id="ret-total-pnl">-</div>
+    <div class="dh-rate" id="ret-total-rate">-</div>
+  </div>
+
+  <div class="detail-stats" style="margin-bottom:16px;">
+    <div class="ds-card"><div class="ds-label">매도 차익</div><div class="ds-value" id="ret-trade-pnl">-</div></div>
+    <div class="ds-card"><div class="ds-label">배당금 수익</div><div class="ds-value" id="ret-div-pnl">-</div></div>
+    <div class="ds-card"><div class="ds-label">매도 수익률</div><div class="ds-value" id="ret-trade-rate">-</div></div>
+    <div class="ds-card"><div class="ds-label">배당 수익률</div><div class="ds-value" id="ret-div-rate">-</div></div>
+  </div>
+
+  <!-- 종목별 수익률 -->
+  <div class="section-title" style="margin-bottom:10px;">종목별 수익률</div>
+  <div id="returnsList"></div>
+</div>
+
 <!-- 통계 -->
 <div class="section content" id="sec-stats">
   <div class="stats-grid" id="statsGrid"></div>
@@ -748,7 +851,7 @@ const DOC_ID = 'main'; // 단일 문서에 전체 데이터 저장
 
 /* ── 데이터 변수 ── */
 const SK='maemail_stocks_v2', TK='maemail_trades_v2';
-let stocks=[], trades=[], folders=[];
+let stocks=[], trades=[], folders=[], dividends=[];
 let currentSection='positions', sectionHistory=[];
 let currentFilter='all';
 let addTradeType='buy';
@@ -777,25 +880,29 @@ async function load(){
       stocks=d.stocks||[];
       trades=d.trades||[];
       folders=d.folders||[];
+      dividends=d.dividends||[];
       localStorage.setItem(SK,JSON.stringify(stocks));
       localStorage.setItem(TK,JSON.stringify(trades));
       localStorage.setItem('maemail_folders_v1',JSON.stringify(folders));
+      localStorage.setItem('maemail_dividends_v1',JSON.stringify(dividends));
       return;
     }
   }catch(e){console.warn('Firestore load 실패, localStorage 사용',e);}
   try{stocks=JSON.parse(localStorage.getItem(SK))||[];}catch{stocks=[];}
   try{trades=JSON.parse(localStorage.getItem(TK))||[];}catch{trades=[];}
   try{folders=JSON.parse(localStorage.getItem('maemail_folders_v1'))||[];}catch{folders=[];}
+  try{dividends=JSON.parse(localStorage.getItem('maemail_dividends_v1'))||[];}catch{dividends=[];}
 }
 
 async function save(){
   localStorage.setItem(SK,JSON.stringify(stocks));
   localStorage.setItem(TK,JSON.stringify(trades));
   localStorage.setItem('maemail_folders_v1',JSON.stringify(folders));
+  localStorage.setItem('maemail_dividends_v1',JSON.stringify(dividends));
   if(_saving)return;
   _saving=true;
   try{
-    await setDoc(doc(db,'journal',DOC_ID),{stocks,trades,folders,updatedAt:new Date().toISOString()});
+    await setDoc(doc(db,'journal',DOC_ID),{stocks,trades,folders,dividends,updatedAt:new Date().toISOString()});
   }catch(e){
     console.warn('Firestore save 실패',e);
     showToast('⚠️ 오프라인 저장됨',true);
@@ -893,12 +1000,14 @@ function _render(name){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+name)?.classList.add('active');
   currentSection=name;
-  const ti={positions:0,list:1,add:2,ranking:3,stats:4};
+  const ti={positions:0,list:1,add:2,dividend:3,returns:4,ranking:5,stats:6};
   if(ti[name]!==undefined)document.querySelectorAll('.tab-btn')[ti[name]]?.classList.add('active');
   if(name==='positions')renderPositions();
   if(name==='list')renderList();
   if(name==='stats')renderStats();
   if(name==='ranking')renderRanking();
+  if(name==='dividend')renderDividend();
+  if(name==='returns')renderReturns();
   if(name==='add'){document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];document.getElementById('addProfit').style.display='none';}
   const bb=document.getElementById('backBtn');
   sectionHistory.length?bb.classList.add('visible'):bb.classList.remove('visible');
@@ -1500,7 +1609,151 @@ async function moveToFolder(){
   exitFolderSelectMode();
 }
 
-/* ── 랭킹 ── */
+/* ── 배당금 ── */
+function renderDividendStockSelect(){
+  const sel=document.getElementById('div-stock');
+  if(!sel)return;
+  sel.innerHTML='<option value="">종목 선택</option>'
+    +[...stocks].sort((a,b)=>a.name.localeCompare(b.name,'ko'))
+      .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function renderDividend(){
+  // 날짜 초기화
+  const dateEl=document.getElementById('div-date');
+  if(dateEl&&!dateEl.value) dateEl.value=new Date().toISOString().split('T')[0];
+  renderDividendStockSelect();
+
+  // 합계
+  const total=dividends.reduce((a,d)=>a+(d.amount||0),0);
+  const netTotal=dividends.reduce((a,d)=>a+(d.net||d.amount||0),0);
+  const stockSet=new Set(dividends.map(d=>d.stockId).filter(Boolean));
+  document.getElementById('div-total').textContent=total?'+'+fmt(total):'-';
+  document.getElementById('div-net-total').textContent=netTotal?'+'+fmt(netTotal):'-';
+  document.getElementById('div-count').textContent=dividends.length+'회';
+  document.getElementById('div-stocks').textContent=stockSet.size+'종목';
+
+  // 목록 (최신순)
+  const c=document.getElementById('dividendList');
+  if(!dividends.length){
+    c.innerHTML='<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">배당금 내역이 없어요.<br>위에서 입력해주세요.</div></div>';
+    return;
+  }
+  const sorted=[...dividends].sort((a,b)=>b.date.localeCompare(a.date));
+  c.innerHTML=sorted.map(d=>{
+    const s=stocks.find(s=>s.id===d.stockId);
+    return`<div class="div-card">
+      <div class="div-card-header">
+        <div>
+          <div class="div-stock-name">${s?.name||'?'}</div>
+          <div class="div-date">${d.date}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="div-amount">+${fmt(d.amount||0)}</div>
+          ${d.net&&d.net!==d.amount?`<div class="div-net">세후 +${fmt(d.net)}</div>`:''}
+          <button class="btn-del" onclick="deleteDividend('${d.id}')" style="margin-top:4px;">🗑</button>
+        </div>
+      </div>
+      ${d.memo?`<div class="div-memo">💬 ${d.memo}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function saveDividend(){
+  const date=document.getElementById('div-date')?.value;
+  const stockId=document.getElementById('div-stock')?.value;
+  const amount=parseFloat(document.getElementById('div-amount')?.value)||0;
+  const net=parseFloat(document.getElementById('div-net')?.value)||0;
+  const memo=document.getElementById('div-memo')?.value.trim()||'';
+  if(!date){showToast('날짜를 입력해주세요.',true);return;}
+  if(!stockId){showToast('종목을 선택해주세요.',true);return;}
+  if(!amount){showToast('배당금을 입력해주세요.',true);return;}
+  dividends.push({id:uid(),date,stockId,amount,net:net||amount,memo});
+  await save();
+  document.getElementById('div-amount').value='';
+  document.getElementById('div-net').value='';
+  document.getElementById('div-memo').value='';
+  showToast('✅ 배당금 저장 완료!');
+  renderDividend();
+}
+
+async function deleteDividend(did){
+  showModal('배당금 내역을 삭제할까요?','삭제된 데이터는 복구할 수 없어요.',async()=>{
+    dividends=dividends.filter(d=>d.id!==did);
+    await save();
+    showToast('삭제 완료');
+    renderDividend();
+  });
+}
+
+/* ── 수익률 ── */
+function renderReturns(){
+  const ML={KR:'🇰🇷',US:'🇺🇸',CRYPTO:'₿',ETC:'기타'};
+
+  // 매도 차익 계산
+  let totalTradePnl=0;
+  let totalInvested=0;
+  stocks.forEach(s=>{
+    const p=calcPosition(s.id);
+    totalTradePnl+=p.realPnl;
+    totalInvested+=p.buys.reduce((a,t)=>a+t.price*t.qty,0);
+  });
+
+  // 배당금 합계
+  const totalDivPnl=dividends.reduce((a,d)=>a+(d.net||d.amount||0),0);
+
+  // 전체 수익
+  const totalPnl=totalTradePnl+totalDivPnl;
+  const tradeRate=totalInvested?(totalTradePnl/totalInvested*100):0;
+  const divRate=totalInvested?(totalDivPnl/totalInvested*100):0;
+  const totalRate=totalInvested?(totalPnl/totalInvested*100):0;
+
+  // 헤더 카드
+  document.getElementById('ret-total-pnl').textContent=(totalPnl>=0?'+':'')+fmt(totalPnl);
+  document.getElementById('ret-total-pnl').className='dh-pnl '+(totalPnl>=0?'':'red');
+  document.getElementById('ret-total-rate').textContent=(totalRate>=0?'+':'')+totalRate.toFixed(2)+'% 전체 수익률';
+  document.getElementById('ret-trade-pnl').textContent=(totalTradePnl>=0?'+':'')+fmt(totalTradePnl);
+  document.getElementById('ret-trade-pnl').className='ds-value '+(totalTradePnl>=0?'green':'red');
+  document.getElementById('ret-div-pnl').textContent='+'+fmt(totalDivPnl);
+  document.getElementById('ret-div-pnl').className='ds-value green';
+  document.getElementById('ret-trade-rate').textContent=(tradeRate>=0?'+':'')+tradeRate.toFixed(2)+'%';
+  document.getElementById('ret-trade-rate').className='ds-value '+(tradeRate>=0?'green':'red');
+  document.getElementById('ret-div-rate').textContent='+'+divRate.toFixed(2)+'%';
+  document.getElementById('ret-div-rate').className='ds-value green';
+
+  // 종목별
+  const c=document.getElementById('returnsList');
+  if(!stocks.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-text">등록된 종목이 없어요.</div></div>';return;}
+
+  const list=[...stocks].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  c.innerHTML=list.map(s=>{
+    const p=calcPosition(s.id);
+    const stockDivs=dividends.filter(d=>d.stockId===s.id);
+    const divTotal=stockDivs.reduce((a,d)=>a+(d.net||d.amount||0),0);
+    const invested=p.buys.reduce((a,t)=>a+t.price*t.qty,0);
+    const totalStockPnl=p.realPnl+divTotal;
+    const totalStockRate=invested?(totalStockPnl/invested*100):0;
+    const tradeR=invested?(p.realPnl/invested*100):0;
+    const divR=invested?(divTotal/invested*100):0;
+    return`<div class="ret-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="ret-name">${s.name}</div>
+        <div style="text-align:right;">
+          <div style="font-size:17px;font-weight:800;color:${totalStockPnl>=0?'var(--gain)':'var(--loss)'};">${totalStockPnl>=0?'+':''}${fmt(totalStockPnl)}</div>
+          <div style="font-size:12px;color:${totalStockRate>=0?'var(--gain)':'var(--loss)'};">${totalStockRate>=0?'+':''}${totalStockRate.toFixed(2)}%</div>
+        </div>
+      </div>
+      <div class="ret-grid">
+        <div class="ret-item"><div class="ret-label">매도 차익</div><div class="ret-value ${p.realPnl>=0?'green':'red'}">${p.realPnl>=0?'+':''}${fmt(p.realPnl)}</div></div>
+        <div class="ret-item"><div class="ret-label">배당 수익</div><div class="ret-value green">${divTotal?'+'+fmt(divTotal):'-'}</div></div>
+        <div class="ret-item"><div class="ret-label">투자금</div><div class="ret-value">${fmt(invested)}</div></div>
+        <div class="ret-item"><div class="ret-label">매도 수익률</div><div class="ret-value ${tradeR>=0?'green':'red'}">${p.sells.length?(tradeR>=0?'+':'')+tradeR.toFixed(2)+'%':'-'}</div></div>
+        <div class="ret-item"><div class="ret-label">배당 수익률</div><div class="ret-value green">${divTotal?'+'+divR.toFixed(2)+'%':'-'}</div></div>
+        <div class="ret-item"><div class="ret-label">배당 횟수</div><div class="ret-value">${stockDivs.length}회</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
 let rankFilter='all',metricFormSid=null,rankAddOpen=false,rankNewStockOpen=false,rankSelectedSid=null;
 function setRankFilter(f,el){rankFilter=f;document.querySelectorAll('#sec-ranking .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderRanking();}
 function calcScore(s){const m=s.metrics||{};const{영업이익,매출액,ROE,EPS,PBR,PER,부채비율}=m;if(!매출액||!ROE||!EPS||!PBR||!PER||!부채비율)return null;const 영업이익률=(영업이익||0)/매출액;const denom=PBR*PER*부채비율;if(!denom)return null;return(영업이익률*ROE*EPS)/denom;}
@@ -1688,6 +1941,7 @@ var _exports = {
   delTrade,delStock,setFilter,setRankFilter,openRankAdd,closeRankAdd,
   selectRankStock,openRankNewStock,saveRankAdd,openMetricForm,closeMetricForm,
   saveMetrics,exportCSV,exportJSON,importJSON,clearAll,
+  saveDividend,deleteDividend,renderDividend,renderReturns,
   openFolderCreate,closeFolderCreate,toggleEmojiPicker,selectFolderEmoji,
   saveFolder,setFolderTab,deleteFolder,renderFolderTabs,renderFolderSelect,
   enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder,
@@ -1702,7 +1956,7 @@ window._appRender = _render;
 /* ── Init ── */
 document.getElementById('positionList').innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">데이터 불러오는 중...</div></div>';
 await load();
-updateSummary();renderPositions();renderFolderTabs();renderFolderSelect();
+updateSummary();renderPositions();renderFolderTabs();renderFolderSelect();renderDividendStockSelect();
 document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];
 window.addEventListener('popstate',()=>{if(sectionHistory.length){const p=sectionHistory.pop();_render(p);}});
 history.pushState({},'');
