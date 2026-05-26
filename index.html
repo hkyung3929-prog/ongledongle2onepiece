@@ -2072,6 +2072,7 @@ history.pushState({},'');
     cover.style.opacity = '0';
     cover.style.transform = 'scale(1.04)';
     cover.classList.remove('hidden');
+    cover.scrollTop = 0; // 스크롤 위치 맨 위로 리셋
     requestAnimationFrame(function(){
       cover.style.transition = 'opacity .45s ease, transform .45s ease';
       cover.style.opacity = '1';
