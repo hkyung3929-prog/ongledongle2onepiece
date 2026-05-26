@@ -17,7 +17,7 @@
   --shadow-md:0 6px 28px rgba(34,139,87,0.14);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
+body{font-family:'Pretendard','Apple SD Gothic Neo',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;overflow:hidden;}
 
 /* Header */
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
@@ -2066,18 +2066,47 @@ history.pushState({},'');
 
   window.goHome = function() {
     var cover = document.getElementById('coverWrap');
-    // 현재 섹션 저장 (홈에서 다시 진입 시 탭 복원용)
     window._lastSection = (window._appRender && typeof currentSection !== 'undefined') ? currentSection : null;
     cover.style.transition = 'none';
     cover.style.opacity = '0';
     cover.style.transform = 'scale(1.04)';
     cover.classList.remove('hidden');
-    cover.scrollTop = 0; // 스크롤 위치 맨 위로 리셋
+    cover.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // cover 떠 있을 때 body 스크롤 잠금
+    document.body.style.overflow = 'hidden';
     requestAnimationFrame(function(){
       cover.style.transition = 'opacity .45s ease, transform .45s ease';
       cover.style.opacity = '1';
       cover.style.transform = 'scale(1)';
     });
+  };
+
+  window.enterApp = function(section) {
+    var cover = document.getElementById('coverWrap');
+    cover.style.transition = 'opacity .5s ease, transform .5s ease';
+    cover.style.opacity = '0';
+    cover.style.transform = 'scale(1.04)';
+    setTimeout(function() {
+      cover.classList.add('hidden');
+      cover.style.pointerEvents = 'none';
+      cover.style.opacity = '';
+      cover.style.transform = '';
+      // 앱 진입 시 body 스크롤 복원
+      document.body.style.overflow = '';
+      if(typeof sectionHistory !== 'undefined') sectionHistory.length = 0;
+      if(window._appRender) {
+        window._appRender(section);
+      } else {
+        var wait = setInterval(function(){
+          if(window._appRender){
+            clearInterval(wait);
+            window._appRender(section);
+          }
+        }, 50);
+      }
+    }, 450);
   };
 })();
 </script>
