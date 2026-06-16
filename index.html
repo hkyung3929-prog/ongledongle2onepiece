@@ -133,6 +133,41 @@ select option{background:#fff;}
 .ds-value{font-size:15px;font-weight:700;}
 .section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 
+/* 매매 계획 (손절/익절) */
+.plan-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);}
+.plan-card-title{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+.plan-rr{font-size:11px;font-weight:700;color:var(--accent);background:rgba(34,139,87,.1);border:1px solid rgba(34,139,87,.22);padding:3px 9px;border-radius:10px;text-transform:none;letter-spacing:0;}
+.plan-lines{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.plan-line{border-radius:var(--radius-sm);padding:11px 12px;border:1.5px solid;}
+.plan-line.stop{background:var(--loss-bg);border-color:rgba(239,68,68,.3);}
+.plan-line.take{background:var(--gain-bg);border-color:rgba(22,163,74,.3);}
+.plan-line-label{font-size:10px;font-weight:700;letter-spacing:.3px;margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.plan-line.stop .plan-line-label{color:var(--loss);}
+.plan-line.take .plan-line-label{color:var(--gain);}
+.plan-line-price{font-size:16px;font-weight:800;}
+.plan-line.stop .plan-line-price{color:var(--loss);}
+.plan-line.take .plan-line-price{color:var(--gain);}
+.plan-line-sub{font-size:11px;font-weight:600;margin-top:2px;}
+.plan-line.stop .plan-line-sub{color:var(--loss);}
+.plan-line.take .plan-line-sub{color:var(--gain);}
+.plan-gauge-wrap{margin-top:4px;}
+.plan-gauge{position:relative;height:8px;border-radius:5px;background:linear-gradient(90deg,var(--loss),#f6c66b 50%,var(--gain));overflow:visible;}
+.plan-gauge-marker{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent);transform:translate(-50%,-50%);box-shadow:0 1px 5px rgba(0,0,0,.18);}
+.plan-gauge-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:7px;font-weight:600;}
+.plan-gauge-avg{text-align:center;font-size:10px;color:var(--accent);font-weight:700;margin-top:5px;}
+.plan-single{font-size:11px;color:var(--muted);text-align:center;padding:2px 0;}
+.pos-plan{display:flex;gap:8px;margin-bottom:10px;}
+.pos-plan-chip{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:700;padding:6px 8px;border-radius:9px;}
+.pos-plan-chip.stop{background:var(--loss-bg);color:var(--loss);}
+.pos-plan-chip.take{background:var(--gain-bg);color:var(--gain);}
+.plan-hint{font-size:11px;border-radius:9px;padding:8px 11px;margin-top:9px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.plan-hint.hit-take{background:var(--gain-bg);color:var(--gain);border:1px solid rgba(22,163,74,.3);}
+.plan-hint.hit-stop{background:var(--loss-bg);color:var(--loss);border:1px solid rgba(239,68,68,.3);}
+.plan-ref{font-size:11px;color:var(--muted);background:var(--bg3);border-radius:9px;padding:8px 11px;margin-top:10px;line-height:1.6;border-left:3px solid rgba(34,139,87,.25);}
+.plan-ref b.stop{color:var(--loss);} .plan-ref b.take{color:var(--gain);}
+.plan-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.plan-input-pct{font-size:10px;font-weight:700;margin-top:4px;text-align:center;min-height:13px;}
+
 /* 타임라인 */
 .tl-item{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:9px;box-shadow:var(--shadow);}
 .tl-main{display:flex;justify-content:space-between;align-items:flex-start;}
@@ -670,6 +705,19 @@ select option{background:#fff;}
         <label>수수료</label>
         <input type="number" id="ns-fee" placeholder="0" value="0">
       </div>
+      <div class="form-group full" id="addPlanRow">
+        <label>🎯 매매 계획 (선택) — 도달 시 계획대로 매도</label>
+        <div class="plan-inputs">
+          <div>
+            <input type="number" id="ns-stoploss" placeholder="🛑 손절라인" oninput="updateAddProfit()">
+            <div class="plan-input-pct red" id="ns-stoploss-pct"></div>
+          </div>
+          <div>
+            <input type="number" id="ns-takeprofit" placeholder="🎯 익절라인" oninput="updateAddProfit()">
+            <div class="plan-input-pct green" id="ns-takeprofit-pct"></div>
+          </div>
+        </div>
+      </div>
       <div class="form-group full">
         <label>감정</label>
         <select id="ns-emotion">
@@ -1008,7 +1056,7 @@ function _render(name){
   if(name==='ranking')renderRanking();
   if(name==='dividend')renderDividend();
   if(name==='returns')renderReturns();
-  if(name==='add'){document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];document.getElementById('addProfit').style.display='none';}
+  if(name==='add'){document.getElementById('ns-date').value=new Date().toISOString().split('T')[0];document.getElementById('addProfit').style.display='none';setAddType('buy');}
   const bb=document.getElementById('backBtn');
   sectionHistory.length?bb.classList.add('visible'):bb.classList.remove('visible');
 }
@@ -1030,6 +1078,66 @@ function calcPosition(sid){
   return{avgBuy,remainQty,realPnl,realRate,totalFee,buys,sells,tBQ,tSQ};
 }
 
+/* ── 매매 계획 (손절/익절) ── */
+// 가장 최근에 라인을 설정한 매수 기록에서 계획을 가져온다
+function getPlan(sid){
+  const buys=trades.filter(t=>t.stockId===sid&&t.type==='buy'&&(t.stopLoss!=null||t.takeProfit!=null))
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(!buys.length)return null;
+  const last=buys[buys.length-1];
+  const sl=(last.stopLoss!=null&&!isNaN(last.stopLoss))?last.stopLoss:null;
+  const tp=(last.takeProfit!=null&&!isNaN(last.takeProfit))?last.takeProfit:null;
+  if(sl===null&&tp===null)return null;
+  return{stopLoss:sl,takeProfit:tp,date:last.date};
+}
+// 상세화면용 매매 계획 카드
+function planCardHTML(sid){
+  const plan=getPlan(sid);
+  if(!plan)return'';
+  const p=calcPosition(sid);
+  const isHold=p.remainQty>0.0001;
+  if(!isHold)return''; // 청산된 종목은 계획 표시 안 함
+  const base=p.avgBuy||0;
+  const qty=p.remainQty;
+  const sl=plan.stopLoss, tp=plan.takeProfit;
+  // 손익비
+  let rrHTML='';
+  if(sl!=null&&tp!=null&&base){
+    const risk=base-sl, reward=tp-base;
+    if(risk>0&&reward>0){
+      rrHTML=`<span class="plan-rr">손익비 1 : ${(reward/risk).toFixed(1)}</span>`;
+    }
+  }
+  // 라인 박스
+  function lineBox(kind,price){
+    if(price==null)return`<div class="plan-line ${kind}" style="opacity:.45;"><div class="plan-line-label">${kind==='stop'?'🛑 손절라인':'🎯 익절라인'}</div><div class="plan-single">미설정</div></div>`;
+    const rate=base?((price-base)/base*100):0;
+    const amt=base?((price-base)*qty):0;
+    return`<div class="plan-line ${kind}">
+      <div class="plan-line-label">${kind==='stop'?'🛑 손절라인':'🎯 익절라인'}</div>
+      <div class="plan-line-price">${price.toLocaleString('ko-KR',{maximumFractionDigits:2})}</div>
+      <div class="plan-line-sub">${rate>=0?'+':''}${rate.toFixed(1)}% · ${amt>=0?'+':''}${fmt(amt)}</div>
+    </div>`;
+  }
+  // 게이지 (손절·익절 둘 다 있을 때)
+  let gaugeHTML='';
+  if(sl!=null&&tp!=null&&tp>sl){
+    let pos=(base-sl)/(tp-sl)*100;
+    pos=Math.max(2,Math.min(98,pos));
+    gaugeHTML=`<div class="plan-gauge-wrap">
+      <div class="plan-gauge"><div class="plan-gauge-marker" style="left:${pos}%;"></div></div>
+      <div class="plan-gauge-labels"><span>손절 ${fmt(sl)}</span><span>익절 ${fmt(tp)}</span></div>
+      <div class="plan-gauge-avg">▲ 평균매수가 ${base.toLocaleString('ko-KR',{maximumFractionDigits:2})}</div>
+    </div>`;
+  }
+  return`<div class="plan-card">
+    <div class="plan-card-title"><span>🎯 매매 계획</span>${rrHTML}</div>
+    <div class="plan-lines">${lineBox('stop',sl)}${lineBox('take',tp)}</div>
+    ${gaugeHTML}
+    <div class="plan-ref">📌 보유 ${qty.toLocaleString()}주 기준, 위 라인 도달 시 계획대로 매도하세요. 라인은 매수 기록을 수정해 변경할 수 있어요.</div>
+  </div>`;
+}
+
 /* ── 요약바 ── */
 function updateSummary(){
   document.getElementById('s-stocks').textContent=stocks.length+'종목';
@@ -1048,10 +1156,17 @@ function updateSummary(){
 }
 
 /* ── 기록하기 ── */
+function pctStr(line,base){
+  if(!base||line===''||line===null||isNaN(line))return '';
+  const r=(line-base)/base*100;
+  return (r>=0?'+':'')+r.toFixed(1)+'%';
+}
 function setAddType(type){
   addTradeType=type;
   document.getElementById('addTypeBuy').classList.toggle('active',type==='buy');
   document.getElementById('addTypeSell').classList.toggle('active',type==='sell');
+  const pr=document.getElementById('addPlanRow');
+  if(pr)pr.style.display=type==='buy'?'':'none';
   updateAddProfit();
 }
 function updateAddProfit(){
@@ -1063,6 +1178,13 @@ function updateAddProfit(){
     document.getElementById('addProfitVal').textContent=(addTradeType==='buy'?'총 매수금액 ':'총 매도금액 ')+fmt(price*qty);
     document.getElementById('addProfitVal').className='pp-value';
   }else{prev.style.display='none';}
+  // 손절/익절 라인 비율 미리보기 (매수가 기준)
+  const sl=parseFloat(document.getElementById('ns-stoploss')?.value);
+  const tp=parseFloat(document.getElementById('ns-takeprofit')?.value);
+  const slEl=document.getElementById('ns-stoploss-pct');
+  const tpEl=document.getElementById('ns-takeprofit-pct');
+  if(slEl)slEl.textContent=pctStr(sl,price);
+  if(tpEl)tpEl.textContent=pctStr(tp,price);
 }
 async function addStockAndTrade(){
   const name=document.getElementById('ns-name').value.trim();
@@ -1073,6 +1195,8 @@ async function addStockAndTrade(){
   const fee=parseFloat(document.getElementById('ns-fee').value)||0;
   const emotion=document.getElementById('ns-emotion').value;
   const memo=document.getElementById('ns-memo').value.trim();
+  const stopLoss=parseFloat(document.getElementById('ns-stoploss').value);
+  const takeProfit=parseFloat(document.getElementById('ns-takeprofit').value);
   if(!name){showToast('종목명을 입력하세요.',true);return;}
   if(!date||!price||!qty){showToast('날짜, 가격, 수량을 입력하세요.',true);return;}
   let stock=stocks.find(s=>s.name.toLowerCase()===name.toLowerCase());
@@ -1081,7 +1205,12 @@ async function addStockAndTrade(){
     stock={id:uid(),name,market,memo:'',folderId,createdAt:new Date().toISOString()};
     stocks.push(stock);
   }
-  trades.push({id:uid(),stockId:stock.id,type:addTradeType,date,price,qty,fee,emotion,memo});
+  const trade={id:uid(),stockId:stock.id,type:addTradeType,date,price,qty,fee,emotion,memo};
+  if(addTradeType==='buy'){
+    if(!isNaN(stopLoss))trade.stopLoss=stopLoss;
+    if(!isNaN(takeProfit))trade.takeProfit=takeProfit;
+  }
+  trades.push(trade);
   await save();updateSummary();
   document.getElementById('ns-name').value='';
   document.getElementById('ns-price').value='';
@@ -1089,6 +1218,10 @@ async function addStockAndTrade(){
   document.getElementById('ns-fee').value='0';
   document.getElementById('ns-emotion').value='';
   document.getElementById('ns-memo').value='';
+  document.getElementById('ns-stoploss').value='';
+  document.getElementById('ns-takeprofit').value='';
+  document.getElementById('ns-stoploss-pct').textContent='';
+  document.getElementById('ns-takeprofit-pct').textContent='';
   document.getElementById('addProfit').style.display='none';
   setAddType('buy');
   showToast('✅ '+name+' 저장 완료!');
@@ -1143,6 +1276,13 @@ function posCardHTML(s){
   const p=calcPosition(s.id);
   const hasSell=p.sells.length>0;
   const isHold=p.remainQty>0.0001;
+  const plan=isHold?getPlan(s.id):null;
+  let planChips='';
+  if(plan){
+    const sChip=plan.stopLoss!=null?`<div class="pos-plan-chip stop">🛑 손절 ${plan.stopLoss.toLocaleString('ko-KR',{maximumFractionDigits:2})}</div>`:'';
+    const tChip=plan.takeProfit!=null?`<div class="pos-plan-chip take">🎯 익절 ${plan.takeProfit.toLocaleString('ko-KR',{maximumFractionDigits:2})}</div>`:'';
+    planChips=`<div class="pos-plan">${sChip}${tChip}</div>`;
+  }
   const pc=p.realPnl>=0?'green':'red';
   const cnt=p.buys.length+p.sells.length;
   const isEditing=editingStockId===s.id;
@@ -1175,6 +1315,7 @@ function posCardHTML(s){
       <div><div class="ps-label">보유수량</div><div class="ps-value">${isHold?p.remainQty.toLocaleString():'0'}</div></div>
       <div><div class="ps-label">매도횟수</div><div class="ps-value">${p.sells.length}회</div></div>
     </div>
+    ${planChips}
     <div class="pos-actions">
       <button class="btn btn-sm-gain" style="flex:1;" onclick="openPosAdd('${s.id}','buy')">+ 매수</button>
       <button class="btn btn-sm-loss" style="flex:1;" onclick="openPosAdd('${s.id}','sell')">− 매도</button>
@@ -1242,6 +1383,15 @@ function _renderDetail(sid){
   function ifHTML(tid){
     const t=tid?trades.find(t=>t.id===tid):null;
     const tp=t?t.type:inlineFormType;
+    const slVal=(t&&t.stopLoss!=null)?t.stopLoss:'';
+    const tkVal=(t&&t.takeProfit!=null)?t.takeProfit:'';
+    const activePlan=getPlan(sid);
+    let planRefHTML='';
+    if(activePlan){
+      const sTxt=activePlan.stopLoss!=null?`🛑 손절 <b class="stop">${activePlan.stopLoss.toLocaleString('ko-KR',{maximumFractionDigits:2})}</b>`:'';
+      const tTxt=activePlan.takeProfit!=null?`🎯 익절 <b class="take">${activePlan.takeProfit.toLocaleString('ko-KR',{maximumFractionDigits:2})}</b>`:'';
+      planRefHTML=`<div class="plan-ref" id="ifPlanRef" style="display:${tp==='sell'?'block':'none'};">📋 매매 계획: ${[sTxt,tTxt].filter(Boolean).join(' · ')}</div>`;
+    }
     return`<div class="inline-form" id="inlineForm">
       <h4>${t?'거래 수정':'거래 추가'}</h4>
       <div class="type-toggle">
@@ -1253,10 +1403,19 @@ function _renderDetail(sid){
         <div class="form-group"><label>가격</label><input type="number" id="if-price" placeholder="0" value="${t?t.price:''}" oninput="updateInlineProfit('${sid}')"></div>
         <div class="form-group"><label>수량</label><input type="number" id="if-qty" placeholder="0" value="${t?t.qty:''}" oninput="updateInlineProfit('${sid}')"></div>
         <div class="form-group"><label>수수료</label><input type="number" id="if-fee" placeholder="0" value="${t?(t.fee||0):0}"></div>
+        <div class="form-group full" id="ifPlanRow" style="display:${tp==='buy'?'block':'none'};">
+          <label>🎯 매매 계획 (선택) — 도달 시 계획대로 매도</label>
+          <div class="plan-inputs">
+            <div><input type="number" id="if-stoploss" placeholder="🛑 손절라인" value="${slVal}" oninput="updateInlineProfit('${sid}')"><div class="plan-input-pct red" id="if-stoploss-pct"></div></div>
+            <div><input type="number" id="if-takeprofit" placeholder="🎯 익절라인" value="${tkVal}" oninput="updateInlineProfit('${sid}')"><div class="plan-input-pct green" id="if-takeprofit-pct"></div></div>
+          </div>
+        </div>
         <div class="form-group full"><label>감정</label><select id="if-emotion">${EMOTION_OPTS.map(e=>`<option value="${e}"${t&&t.emotion===e?' selected':''}>${e||'선택 안 함'}</option>`).join('')}</select></div>
         <div class="form-group full"><label>메모</label><textarea id="if-memo" placeholder="매매 이유, 반성...">${t?t.memo||'':''}</textarea></div>
       </div>
+      ${planRefHTML}
       <div class="profit-preview" id="inlineProfit" style="display:none;"><span class="pp-label">예상 손익</span><span class="pp-value" id="inlineProfitVal">-</span></div>
+      <div class="plan-hint" id="ifPlanHint" style="display:none;"></div>
       <div style="display:flex;gap:8px;margin-top:11px;">
         <button class="btn btn-primary" style="flex:1;" onclick="saveTrade('${sid}','${tid||''}')">저장</button>
         <button class="btn btn-outline" onclick="closeInlineForm('${sid}')">취소</button>
@@ -1268,11 +1427,15 @@ function _renderDetail(sid){
     const tPnl=!isBuy&&p.avgBuy?(t.price-p.avgBuy)*t.qty-(t.fee||0):null;
     const tRate=!isBuy&&p.avgBuy?(t.price-p.avgBuy)/p.avgBuy*100:null;
     if(editingTradeId===t.id)return ifHTML(t.id);
+    const planLine=(isBuy&&(t.stopLoss!=null||t.takeProfit!=null))
+      ?`<div class="tl-memo" style="border-left-color:rgba(245,158,11,.55);">🎯 계획 · ${[t.stopLoss!=null?`🛑 손절 ${t.stopLoss.toLocaleString('ko-KR',{maximumFractionDigits:2})}`:'',t.takeProfit!=null?`🎯 익절 ${t.takeProfit.toLocaleString('ko-KR',{maximumFractionDigits:2})}`:''].filter(Boolean).join(' / ')}</div>`
+      :'';
     return`<div class="tl-item">
       <div class="tl-main">
         <div><div class="tl-type" style="color:${isBuy?'var(--gain)':'var(--loss)'};">${isBuy?'▲ 매수':'▼ 매도'}</div><div class="tl-date">${t.date}</div>${t.emotion?`<div class="tl-emotion">${t.emotion}</div>`:''}</div>
         <div><div class="tl-price">${(t.price||0).toLocaleString()} × ${(t.qty||0).toLocaleString()}</div>${t.fee?`<div class="tl-sub">수수료 ${t.fee.toLocaleString()}</div>`:''} ${tPnl!==null?`<div class="tl-pnl ${tPnl>=0?'green':'red'}">${tPnl>=0?'+':''}${fmt(tPnl)} (${tRate>=0?'+':''}${tRate.toFixed(2)}%)</div>`:''}</div>
       </div>
+      ${planLine}
       ${t.memo?`<div class="tl-memo">💬 ${t.memo}</div>`:''}
       <div class="tl-actions">
         <button class="btn btn-ghost" onclick="startEdit('${sid}','${t.id}')">✏️ 수정</button>
@@ -1294,6 +1457,7 @@ function _renderDetail(sid){
       <div class="ds-card"><div class="ds-label">매수 횟수</div><div class="ds-value">${p.buys.length}회</div></div>
       <div class="ds-card"><div class="ds-label">매도 횟수</div><div class="ds-value">${p.sells.length}회</div></div>
     </div>
+    ${planCardHTML(sid)}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <div class="section-title">거래 타임라인</div>
       <div style="display:flex;gap:7px;">
@@ -1315,6 +1479,10 @@ function scrollToForm(){setTimeout(()=>document.getElementById('inlineForm')?.sc
 function setInlineType(type){
   inlineFormType=type;
   document.querySelectorAll('#inlineForm .type-btn').forEach(b=>{b.classList.remove('active');if(b.classList.contains(type))b.classList.add('active');});
+  const row=document.getElementById('ifPlanRow');
+  if(row)row.style.display=type==='buy'?'block':'none';
+  const ref=document.getElementById('ifPlanRef');
+  if(ref)ref.style.display=type==='sell'?'block':'none';
   if(_detailSid)updateInlineProfit(_detailSid);
 }
 function updateInlineProfit(sid){
@@ -1328,6 +1496,28 @@ function updateInlineProfit(sid){
   if(isSell&&price>0&&qty>0){const p=calcPosition(sid);if(p.avgBuy){const pnl=(price-p.avgBuy)*qty-fee;const rate=(price-p.avgBuy)/p.avgBuy*100;prev.style.display='flex';valEl.textContent=(pnl>=0?'+':'')+fmt(pnl)+' ('+(rate>=0?'+':'')+rate.toFixed(2)+'%)';valEl.className='pp-value '+(pnl>=0?'green':'red');}}
   else if(!isSell&&price>0&&qty>0){prev.style.display='flex';valEl.textContent='총 매수금액 '+fmt(price*qty);valEl.className='pp-value';}
   else prev.style.display='none';
+  // 매수: 손절/익절 라인 비율 미리보기
+  if(!isSell){
+    const sl=parseFloat(document.getElementById('if-stoploss')?.value);
+    const tk=parseFloat(document.getElementById('if-takeprofit')?.value);
+    const slEl=document.getElementById('if-stoploss-pct');
+    const tkEl=document.getElementById('if-takeprofit-pct');
+    if(slEl)slEl.textContent=pctStr(sl,price);
+    if(tkEl)tkEl.textContent=pctStr(tk,price);
+  }
+  // 매도: 계획 라인 도달 여부 안내
+  const hint=document.getElementById('ifPlanHint');
+  if(hint){
+    let shown=false;
+    if(isSell&&price>0){
+      const plan=getPlan(sid);
+      if(plan){
+        if(plan.takeProfit!=null&&price>=plan.takeProfit){hint.className='plan-hint hit-take';hint.textContent='🎯 익절 목표가에 도달했어요 — 계획대로 익절 매도!';hint.style.display='flex';shown=true;}
+        else if(plan.stopLoss!=null&&price<=plan.stopLoss){hint.className='plan-hint hit-stop';hint.textContent='🛑 손절 라인에 도달했어요 — 계획대로 손절 매도!';hint.style.display='flex';shown=true;}
+      }
+    }
+    if(!shown)hint.style.display='none';
+  }
 }
 async function saveTrade(sid,tid){
   const date=document.getElementById('if-date')?.value;
@@ -1336,11 +1526,19 @@ async function saveTrade(sid,tid){
   const fee=parseFloat(document.getElementById('if-fee')?.value)||0;
   const emotion=document.getElementById('if-emotion')?.value||'';
   const memo=document.getElementById('if-memo')?.value.trim()||'';
+  const stopLoss=parseFloat(document.getElementById('if-stoploss')?.value);
+  const takeProfit=parseFloat(document.getElementById('if-takeprofit')?.value);
   const isSell=document.querySelector('#inlineForm .type-btn.sell.active')!==null;
   const type=isSell?'sell':'buy';
   if(!date||!price||!qty){showToast('날짜·가격·수량을 입력하세요.',true);return;}
-  if(tid){const t=trades.find(t=>t.id===tid);if(t)Object.assign(t,{type,date,price,qty,fee,emotion,memo});}
-  else trades.push({id:uid(),stockId:sid,type,date,price,qty,fee,emotion,memo});
+  const applyPlan=obj=>{
+    if(type==='buy'){
+      if(!isNaN(stopLoss))obj.stopLoss=stopLoss;else delete obj.stopLoss;
+      if(!isNaN(takeProfit))obj.takeProfit=takeProfit;else delete obj.takeProfit;
+    }else{delete obj.stopLoss;delete obj.takeProfit;}
+  };
+  if(tid){const t=trades.find(t=>t.id===tid);if(t){Object.assign(t,{type,date,price,qty,fee,emotion,memo});applyPlan(t);}}
+  else{const nt={id:uid(),stockId:sid,type,date,price,qty,fee,emotion,memo};applyPlan(nt);trades.push(nt);}
   await save();updateSummary();editingTradeId=null;inlineFormStockId=null;showToast('✅ 저장 완료!');_renderDetail(sid);
 }
 
@@ -1898,8 +2096,8 @@ function showToast(msg,isErr){
 /* ── Export ── */
 function exportCSV(){
   if(!trades.length){showToast('거래 기록이 없어요.',true);return;}
-  const headers=['날짜','종목','시장','유형','가격','수량','수수료','손익','수익률(%)','감정','메모'];
-  const rows=trades.map(t=>{const s=stocks.find(s=>s.id===t.stockId)||{name:'?',market:'?'};const p=calcPosition(t.stockId);const pnl=t.type==='sell'?(t.price-p.avgBuy)*t.qty-(t.fee||0):null;const rate=t.type==='sell'&&p.avgBuy?(t.price-p.avgBuy)/p.avgBuy*100:null;return[t.date,s.name,s.market,t.type==='buy'?'매수':'매도',t.price,t.qty,t.fee||0,pnl!==null?pnl.toFixed(2):'',rate!==null?rate.toFixed(2):'',t.emotion||'',t.memo||''];});
+  const headers=['날짜','종목','시장','유형','가격','수량','수수료','손절라인','익절라인','손익','수익률(%)','감정','메모'];
+  const rows=trades.map(t=>{const s=stocks.find(s=>s.id===t.stockId)||{name:'?',market:'?'};const p=calcPosition(t.stockId);const pnl=t.type==='sell'?(t.price-p.avgBuy)*t.qty-(t.fee||0):null;const rate=t.type==='sell'&&p.avgBuy?(t.price-p.avgBuy)/p.avgBuy*100:null;return[t.date,s.name,s.market,t.type==='buy'?'매수':'매도',t.price,t.qty,t.fee||0,t.stopLoss??'',t.takeProfit??'',pnl!==null?pnl.toFixed(2):'',rate!==null?rate.toFixed(2):'',t.emotion||'',t.memo||''];});
   const csv='\uFEFF'+[headers,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
   const a=document.createElement('a');a.href=url;a.download='매매일지_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
