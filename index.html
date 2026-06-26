@@ -431,7 +431,7 @@ select option{background:#fff;}
     'saveDividend','deleteDividend','renderDividend','renderReturns',
     'openFolderCreate','closeFolderCreate','toggleEmojiPicker','selectFolderEmoji',
     'saveFolder','setFolderTab','deleteFolder','renderFolderTabs','renderFolderSelect',
-    'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder',
+    'enterFolderSelectMode','exitFolderSelectMode','toggleFolderStockSelect','moveToFolder','delRankStock',
     'openFolderEdit','cancelFolderEdit','toggleFolderEditEmoji','selectFolderEditEmoji','saveFolderEdit','renderFolderEditBar'
   ];
   FNAMES.forEach(function(name){
@@ -1767,7 +1767,8 @@ function enterFolderSelectMode(){
   // 이동 폴더 드롭다운 업데이트
   const sel=document.getElementById('folderMoveTarget');
   sel.innerHTML='<option value="">이동할 폴더 선택</option>'
-    +folders.map(f=>`<option value="${f.id}">${f.emoji} ${f.name}</option>`).join('');
+    +folders.map(f=>`<option value="${f.id}">${f.emoji} ${f.name}</option>`).join('')
+    +'<option value="__none__">📂 폴더에서 빼기 (폴더 없음)</option>';
   renderRanking();
 }
 function exitFolderSelectMode(){
@@ -1794,17 +1795,31 @@ function toggleFolderStockSelect(sid){
   document.getElementById('folderSelectCount').textContent=folderSelectedStocks.size+'개 선택됨';
 }
 async function moveToFolder(){
-  const fid=document.getElementById('folderMoveTarget')?.value;
-  if(!fid){showToast('이동할 폴더를 선택해주세요.',true);return;}
+  const raw=document.getElementById('folderMoveTarget')?.value;
+  if(!raw){showToast('이동할 폴더를 선택해주세요.',true);return;}
   if(!folderSelectedStocks.size){showToast('종목을 선택해주세요.',true);return;}
+  const targetId=raw==='__none__'?'':raw;
+  const cnt=folderSelectedStocks.size;
   folderSelectedStocks.forEach(sid=>{
     const s=stocks.find(s=>s.id===sid);
-    if(s) s.folderId=fid;
+    if(s) s.folderId=targetId;
   });
   await save();
-  const folder=folders.find(f=>f.id===fid);
-  showToast(`✅ ${folderSelectedStocks.size}개 종목을 "${folder?.emoji} ${folder?.name}"로 이동!`);
+  if(targetId===''){
+    showToast(`✅ ${cnt}개 종목을 폴더에서 뺐어요.`);
+  }else{
+    const folder=folders.find(f=>f.id===targetId);
+    showToast(`✅ ${cnt}개 종목을 "${folder?.emoji} ${folder?.name}"로 이동!`);
+  }
   exitFolderSelectMode();
+}
+/* 랭킹 탭에서 종목 삭제 (삭제 후 랭킹 화면 유지) */
+function delRankStock(sid){
+  const s=stocks.find(s=>s.id===sid);
+  showModal('종목을 삭제할까요?',
+    `<strong>${s?.name}</strong> 종목과<br>모든 거래 기록이 삭제됩니다.<br>되돌릴 수 없어요.`,
+    async()=>{stocks=stocks.filter(s=>s.id!==sid);trades=trades.filter(t=>t.stockId!==sid);await save();updateSummary();showToast('삭제 완료');renderRanking();}
+  );
 }
 
 /* ── 배당금 ── */
@@ -2039,7 +2054,7 @@ function renderRanking(){
             <div style="display:flex;gap:6px;align-items:center;margin-top:4px;"><span style="font-size:11px;color:var(--muted);">${ML2[s.market]||s.market}</span>${folderBadge}</div>
           </div>
         </div>
-        ${!folderSelectMode?`<button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button>`:''}
+        ${!folderSelectMode?`<div style="display:flex;gap:6px;align-items:center;"><button class="btn btn-sm-gain" onclick="openMetricForm('${s.id}')">수치 입력</button><button class="btn btn-ghost" style="font-size:12px;color:var(--loss);border:1px solid rgba(239,68,68,.3);" onclick="event.stopPropagation();delRankStock('${s.id}')">🗑</button></div>`:''}
       </div>
       <div class="rank-missing-chips">${missing.map(f=>`<span class="missing-chip">${f} 없음</span>`).join('')}</div>
       ${isOpenForm?metricFormHTML(s):''}
@@ -2068,6 +2083,7 @@ function renderRanking(){
       <div class="rank-actions">
         <button class="btn btn-ghost" style="border:1px solid var(--border2);font-size:12px;" onclick="openMetricForm('${s.id}')">✏️ 수치 수정</button>
         <button class="btn btn-ghost" style="font-size:12px;" onclick="showStockDetail('${s.id}')">거래 상세 →</button>
+        <button class="btn btn-ghost" style="font-size:12px;color:var(--loss);margin-left:auto;" onclick="event.stopPropagation();delRankStock('${s.id}')">🗑 삭제</button>
       </div>
       ${isOpenForm?metricFormHTML(s):''}
     </div>`;
@@ -2142,7 +2158,7 @@ var _exports = {
   saveDividend,deleteDividend,renderDividend,renderReturns,
   openFolderCreate,closeFolderCreate,toggleEmojiPicker,selectFolderEmoji,
   saveFolder,setFolderTab,deleteFolder,renderFolderTabs,renderFolderSelect,
-  enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder,
+  enterFolderSelectMode,exitFolderSelectMode,toggleFolderStockSelect,moveToFolder,delRankStock,
   openFolderEdit,cancelFolderEdit,toggleFolderEditEmoji,selectFolderEditEmoji,saveFolderEdit,renderFolderEditBar
 };
 Object.keys(_exports).forEach(function(name){
